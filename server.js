@@ -2,7 +2,7 @@
 const express = require('express'); // import express
 require('express-async-errors'); // import express-async-errors
 //const morgan = require('morgan')    // import morgan
-//const {errorHandler} = require('./utils/error')// import error handler
+const {errorHandler} = require('./utils/error')// import error handler
 require('dotenv').config()// import dotenv
 require('./config/connections')//   import database connection
 
@@ -13,7 +13,7 @@ app.use(express.json())// parse json request body
 
 const server = require('http').Server(app); // import http
 
-//app.use(errorHandler)// use error handler
+app.use(errorHandler)// use error handler
 //app.use(morgan('dev'))// use morgan
 
 const userRouter = require('./routes/user');// import user router
