@@ -5,10 +5,18 @@ require('express-async-errors'); // import express-async-errors
 const {errorHandler} = require('./utils/error')// import error handler
 require('dotenv').config()// import dotenv
 require('./config/connections')//   import database connection
+var cors = require('cors')
+
+ 
+var corsOptions = {
+  origin: 'http://localhost:5173/',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 
 
 const app = express();// create express app
 app.use(express.json())// parse json request body
+app.use(cors())// enable cors
 
 
 const server = require('http').Server(app); // import http

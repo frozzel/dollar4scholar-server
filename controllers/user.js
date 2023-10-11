@@ -30,7 +30,7 @@ exports.create = async (req, res) => {
       owner: newUser._id,
       token: OTP,
     });
-  
+    console.log(newEmailVerificationToken);
     await newEmailVerificationToken.save();// save otp to db
   
     // send that otp to our user
@@ -110,7 +110,7 @@ exports.verifyEmail = async (req, res) => {
 // resend email verification token
 exports.resendEmailVerificationToken = async (req, res) => {
   const { userId } = req.body;
-  console.log(userId);
+  
   const user = await User.findById(userId);
   if (!user) return sendError(res, "user not found!");
 
@@ -146,7 +146,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
 await sendEmail(user.email, user.name, 'Email Verification', htmlContent) 
 
   res.json({
-    message: "New OTP has been sent to your registered email account.",
+    message: "New code has been sent to your registered email account.",
   });
 };
 
@@ -173,7 +173,7 @@ exports.forgetPassword = async (req, res) => {
   });
   await newPasswordResetToken.save();
 
-  const resetPasswordUrl = `http://localhost:3000/auth/reset-password?token=${token}&id=${user._id}`;
+  const resetPasswordUrl = `http://localhost:5173/auth/reset-password?token=${token}&id=${user._id}`;
 
   ///////////////  change this url to production url when deploying to production /////////////
   // const resetPasswordUrl = `http://dollar4scholar.com/auth/reset-password?token=${token}&id=${user._id}`;
