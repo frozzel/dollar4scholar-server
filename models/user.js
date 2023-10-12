@@ -14,11 +14,11 @@ const userSchema = mongoose.Schema({
         required: true,
         unique: true
     },
-    username: {
+    type: {
         type: String,
-        trim: true,
         required: true,
-        unique: true
+        default: 'student',
+        enum: ['student', 'admin', 'donor']
     },
     password: {
         type: String,
@@ -29,22 +29,46 @@ const userSchema = mongoose.Schema({
         required: true,
         default: false
     },
-    role: {
-        type: String,
-        required: true,
-        default: 'user',
-        enum: ['user', 'admin']
-    },
     avatar: {
         type: Object,
         url: { type: String, required: false },
         public_id: { type: String, required: true },
         responsive: [URL],
       },
-    bio: {
+    phone: {
         type: String,
         trim: true,
         required: false
+    },
+    address: {
+        type: String,
+        trim: true,
+        required: false
+    },
+    birth: {
+        type: Date,
+        trim: true,
+        required: false
+    },
+    town: {
+        type: String,
+        trim: true,
+        required: false
+    },
+    school: {
+        type: String,
+        trim: true,
+        required: false
+    },
+    major: {
+        type: String,
+        trim: true,
+        required: false
+    },
+    wallet: {
+        type: Number,
+        required: true,
+        default: 0
     },
 
 }, 
