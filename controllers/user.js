@@ -11,15 +11,16 @@ const cloudinary = require('../cloud');
 
 // create user
 exports.create = async (req, res) => {
-    const { name, email, password, username } = req.body;// get name, email, password, username from req.body
+    const { name, email, password, type } = req.body;// get name, email, password, username from req.body
+     
   
     const oldUser = await User.findOne({ email }); // check if user already exists
-    const usernameExist = await User.findOne({ username }); // check if username already exists
+    // const usernameExist = await User.findOne({ username }); // check if username already exists
   
     if (oldUser) return sendError(res, "This email is already in use!"); // if user already exists, return error
-    if (usernameExist) return sendError(res, "This username is already in use!"); // if username already exists, return error
+    // if (usernameExist) return sendError(res, "This username is already in use!"); // if username already exists, return error
   
-    const newUser = new User({ name, email, password, username });// create new user
+    const newUser = new User({ name, email, password, type });// create new user
     await newUser.save();// save new user
   
     // generate 6 digit otp
@@ -30,7 +31,7 @@ exports.create = async (req, res) => {
       owner: newUser._id,
       token: OTP,
     });
-    console.log(newEmailVerificationToken);
+    
     await newEmailVerificationToken.save();// save otp to db
   
     // send that otp to our user
@@ -54,7 +55,7 @@ exports.create = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        username: newUser.username,
+        type: newUser.type,
       },
     });
   };
@@ -257,10 +258,10 @@ exports.userInfo = async (req, res) => {
 
   if (!isValidObjectId(userId)) return sendError(res, "Invalid user!");
 
-  const user = await User.findById(userId).populate("following", "name avatar bio username").populate("followers", "name avatar bio username").populate("schoolsFollowing", "SchoolName AddressStreet AddressCity AddressState AddressZip").populate("teachersFollowing", "name avatar about");
+  const user = await User.findById(userId);
   if (!user) return sendError(res, "user not found!", 404);
 
-  res.json({user: {id: user._id, name: user.name, email: user.email, username: user.username, isVerified: user.isVerified, role: user.role, avatar: user.avatar?.url, bio: user.bio, schoolsFollowing: user.schoolsFollowing, teachersFollowing: user.teachersFollowing, following: user.following, followers: user.followers}})
+  res.json({user: {id: user._id, name: user.name, email: user.email, type: user.type, isVerified: user.isVerified, avatar: user.avatar?.url, phone: user.phone, address: user.address, birth: user.birth, town: user.town, school: user.school, major: user.major, wallet: user.wallet}})
 }
 
 // update user info for authenticated user in profile page

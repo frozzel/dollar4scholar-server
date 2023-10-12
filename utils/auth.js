@@ -7,7 +7,7 @@ const { sendError } = require("./helper"); // import helper function
 exports.userValidator = [
     check("name").trim().not().isEmpty().withMessage("Name is missing!"),
     check("email").normalizeEmail().isEmail().withMessage("Email is invalid!"),
-    check('username').trim().not().isEmpty().withMessage('Username is missing!'),
+    check('type').trim().not().isEmpty().withMessage('Type is missing!'),
     check("password")
         .trim()
         .not()
