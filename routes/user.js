@@ -1,7 +1,7 @@
 ///////////////////////////////////// create routes for user/////////////////////////////////////   
 
 const express = require("express"); // import express
-const { create, verifyEmail, resendEmailVerificationToken, forgetPassword, sendResetPasswordTokenStatus, resetPassword, signIn, userInfo, updateUser } = require("../controllers/user");
+const { create, verifyEmail, resendEmailVerificationToken, forgetPassword, sendResetPasswordTokenStatus, resetPassword, signIn, userInfo, updateUser, updateUserWallet } = require("../controllers/user");
 const { isValidPassResetToken } = require("../utils/user");
 const { userValidator, validate, validatePassword, signInValidator, isAuth } = require("../utils/auth");
 const { uploadImage } = require("../utils/multer");
@@ -29,5 +29,6 @@ router.get('/is-auth', isAuth, (req, res) => {
 
 router.get("/profile/:userId", isAuth, userInfo)// get user info route for profile page
 router.put("/update/:userId", isAuth, uploadImage.single("avatar"), updateUser)// update user info route for profile page
+router.post("/wallet/:userId", isAuth, updateUserWallet)// update user wallet route for profile page
 
 module.exports = router; // export router

@@ -301,3 +301,22 @@ exports.updateUser = async (req, res) => {
 
   res.status(201).json({actor: formatUser(user)});
 };
+
+// update user wallet for authenticated user in profile page
+exports.updateUserWallet = async (req, res) => {
+  const { wallet } = req.body;
+  const { userId } = req.params;
+  
+  if (!isValidObjectId(userId)) return sendError(res, "User not found!");
+
+  const user = await User.findById(userId);
+  if (!user) return sendError(res, "Invalid request, record not found!");
+  
+  const newWallet = user.wallet + wallet;
+  
+  user.wallet = newWallet;
+  
+  await user.save();
+
+  res.status(201).json({wallet: newWallet});
+};

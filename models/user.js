@@ -50,11 +50,10 @@ const userSchema = mongoose.Schema({
         trim: true,
         required: false
     },
-    town: {
-        type: String,
-        trim: true,
-        required: false
-    },
+    contribution: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Scholarship",
+    }],
     school: {
         type: String,
         trim: true,

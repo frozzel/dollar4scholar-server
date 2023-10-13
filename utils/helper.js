@@ -84,3 +84,4 @@ exports.formatUser = (user) => {
     avatar: avatar?.url,
   };
 };
+
