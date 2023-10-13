@@ -71,11 +71,16 @@ exports.uploadImageToCloud = async (file) => {
 
 // format user from form data
 exports.formatUser = (user) => {
-  const { name, bio, _id, avatar } = user;
+  const { name, phone, address, birth, school, major, email, _id, avatar } = user;
   return {
     id: _id,
     name,
-    bio,
+    phone,
+    address,
+    birth,
+    school,
+    major,
+    email,
     avatar: avatar?.url,
   };
 };

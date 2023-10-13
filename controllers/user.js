@@ -250,9 +250,6 @@ exports.signIn = async (req, res) => {
 
 }
 
-////////////////////////////////// ToDo ////////////////////
-///// ************ update code for profile page ************ /////
-// get user info for authenticated user in profile page
 exports.userInfo = async (req, res) => {
   const {userId} = req.params;
 
@@ -266,10 +263,10 @@ exports.userInfo = async (req, res) => {
 
 // update user info for authenticated user in profile page
 exports.updateUser = async (req, res) => {
-  const { name, bio } = req.body;
+  const { name, phone, address, birth,  school, major } = req.body;
   const { file } = req;
   const { userId } = req.params;
-
+  
   if (!isValidObjectId(userId)) return sendError(res, "User not found!");
 
   const user = await User.findById(userId);
@@ -292,7 +289,12 @@ exports.updateUser = async (req, res) => {
   }
 
   user.name = name;
-  user.bio = bio;
+  user.phone = phone;
+  user.address = address;
+  user.birth = birth;
+  user.school = school;
+  user.major = major;
+
   
 
   await user.save();
