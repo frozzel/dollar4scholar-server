@@ -4,7 +4,7 @@ const User = require('../models/user')
 const EmailVerificationToken = require('../models/email_verification');
 const { isValidObjectId } = require('mongoose');
 const { generateOPT} = require('../utils/mail');
-const { sendError, generateRandomByte, uploadImageToCloud, formatUser} = require('../utils/helper');
+const { sendError, generateRandomByte, uploadImageToCloudLogo, uploadImageToCloud, formatUser} = require('../utils/helper');
 const PasswordResetToken = require('../models/password_reset');
 const { sendEmail } = require('../utils/mail');
 const cloudinary = require('../cloud');
@@ -294,6 +294,44 @@ exports.updateUser = async (req, res) => {
   user.birth = birth;
   user.school = school;
   user.major = major;
+
+  
+
+  await user.save();
+
+  res.status(201).json({actor: formatUser(user)});
+};
+
+// update donor info for authenticated user in profile page
+exports.updateDonor = async (req, res) => {
+  const { name, phone, address } = req.body;
+  const { file } = req;
+  const { userId } = req.params;
+  
+  if (!isValidObjectId(userId)) return sendError(res, "Donor not found!");
+
+  const user = await User.findById(userId);
+  if (!user) return sendError(res, "Invalid request, Donor not found!");
+
+  const public_id = user.avatar?.public_id;
+
+  // remove old image if there was one!
+  if (public_id && file) {
+    const { result } = await cloudinary.uploader.destroy(public_id);
+    if (result !== "ok") {
+      return sendError(res, "Could not remove image from cloud!");
+    }
+  }
+
+  // upload new avatar if there is one!
+  if (file) {
+    const { url, public_id } = await uploadImageToCloudLogo(file.path);
+    user.avatar = { url, public_id };
+  }
+
+  user.name = name;
+  user.phone = phone;
+  user.address = address;
 
   
 
