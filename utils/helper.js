@@ -68,6 +68,16 @@ exports.uploadImageToCloud = async (file) => {
 
   return { url, public_id };
 };
+ 
+// upload image to cloudinary for logo of Donor
+exports.uploadImageToCloudLogo = async (file) => {
+  const { secure_url: url, public_id } = await cloudinary.uploader.upload(
+    file,
+    {  height: 240, width: 400,  crop: "mfit"}
+  );
+
+  return { url, public_id };
+};
 
 // format user from form data
 exports.formatUser = (user) => {
