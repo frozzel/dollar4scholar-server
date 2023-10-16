@@ -52,7 +52,7 @@ const userSchema = mongoose.Schema({
     },
     contribution: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Scholarship",
+        ref: "Contribution",
     }],
     school: {
         type: String,

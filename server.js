@@ -25,11 +25,13 @@ app.use(errorHandler)// use error handler
 //app.use(morgan('dev'))// use morgan
 
 const userRouter = require('./routes/user');// import user router
+const scholarshipRouter = require('./routes/scholarship');// import scholarship router
 
 
 
 
 app.use('/api/user', userRouter);// use user router
+app.use('/api/scholarship', scholarshipRouter);// use scholarship router
 
 
 
