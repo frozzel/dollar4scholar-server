@@ -47,10 +47,6 @@ exports.addDonorContribution = async (req, res) => {
         user.contribution.push(contributions._id);
         await user.save();
 
-        // add the contribution id to the user object
-        user.contribution.push(contributions._id);
-        await user.save();
-
         res.status(200).json({ message: 'Donor contribution added successfully', scholarship });
 
 };
