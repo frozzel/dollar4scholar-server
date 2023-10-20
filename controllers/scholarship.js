@@ -98,7 +98,16 @@ exports.addMoneyToPot = async (req, res) => {
 };
 
 
-// Add money to the pot of a scholarship
+// get donor contributions for a scholarships
+exports.getDonorContributions = async (req, res) => {
+    try {
+        const donations = await Contribution.find().populate('userId');
+        if (!donations) return sendError(res, 'Donations not found!', 404);
+        res.status(200).json({ message: 'Donor contributions retrieved successfully', donations });
+    } catch (error) {
+        res.status(400).json({ message: 'Error retrieving donor contributions', error });
+    }
+};
 
 
 // Set a scholarship as active or not
