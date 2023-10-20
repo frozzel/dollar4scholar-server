@@ -24,7 +24,7 @@ router.post("/sign-in", signInValidator, validate, signIn);// sign in route
 // get user info route for authenticated user
 router.get('/is-auth', isAuth, (req, res) => {
    const {user} = req;
-   res.json({user: {id: user._id, email: user.email, name: user.name, isVerified: user.isVerified, role: user.role, following: user.following, followers: user.followers, schoolsFollowing: user.schoolsFollowing, teachersFollowing: user.teachersFollowing}})
+   res.json({user: {id: user._id, email: user.email, name: user.name, isVerified: user.isVerified, type: user.type, }})
 })
 
 router.get("/profile/:userId", isAuth, userInfo)// get user info route for profile page
