@@ -2,6 +2,81 @@ const Scholarship = require('../models/scholarship');
 const Contribution = require('../models/contribution');
 const User = require('../models/user');
 const { sendError} = require('../utils/helper');
+const cron = require('node-cron');
+
+
+
+//schedule a cron job to run sunday at 11:59am during spring
+
+cron.schedule('59 11 * 3-10 0', async () => { // Changed to 11:59 AM during daylight saving time
+    updateWinner = async () => {
+        try {
+            const scholarship = await Scholarship.findOne().sort({createdAt: -1});
+            const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
+            await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
+            console.log('Winner updated', winner);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    createNewScholarship = async () => {
+        try {
+            
+            const scholarship = new Scholarship({
+                pot: 0,
+                active: true,
+                studentsEntered: [],
+                donorContributions: []
+            });
+            await scholarship.save();
+            console.log('New scholarship created Spring', scholarship);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    updateWinner();
+    createNewScholarship();
+}, {
+    scheduled: true,
+    timezone: "America/New_York"
+  }
+);
+
+//schedule a cron job to run sunday at 11:59am during fall
+
+cron.schedule('59 11 * 11-3 0', async () => { // Scheduled for 11:59 AM in Eastern Standard Time (ES)
+    updateWinner = async () => {
+        try {
+            const scholarship = await Scholarship.findOne().sort({createdAt: -1});
+            const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
+            await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
+            console.log('Winner updated', winner);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    createNewScholarship = async () => {
+        try {
+            const scholarship = new Scholarship({
+                pot: 0,
+                active: false,
+                studentsEntered: [],
+                donorContributions: []
+            });
+            await scholarship.save();
+            console.log('New scholarship created Fall', scholarship);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    updateWinner();
+    createNewScholarship();
+}, {
+    scheduled: true,
+    timezone: "America/New_York" // Atlanta time zone
+});
+
+
 
 
 // Create a new scholarship
@@ -19,7 +94,7 @@ exports.createScholarship = async (req, res) => {
 exports.addDonorContribution = async (req, res) => {
 
         const {userId} = req.params;
-        const scholarship = await Scholarship.findOne().sort({created_at: -1});
+        const scholarship = await Scholarship.findOne().sort({createdAt: -1});
         const user = await User.findOne({ _id: userId });
         
         if (!user) return sendError(res, 'User not found!', 404)
@@ -56,7 +131,7 @@ exports.addDonorContribution = async (req, res) => {
 // Get current scholarship pot
 exports.getScholarshipPot = async (req, res) => {
     try {
-        const scholarship = await Scholarship.findOne().sort({ created_at: -1 });
+        const scholarship = await Scholarship.findOne().sort({ createdAt: -1 });
         if (!scholarship) return sendError(res, 'Scholarship not found!', 404);
         res.status(200).json({ message: 'Scholarship pot retrieved successfully', scholarship });
     } catch (error) {
@@ -67,7 +142,7 @@ exports.getScholarshipPot = async (req, res) => {
 // Add money to the pot of a scholarship
 exports.addMoneyToPot = async (req, res) => {
     const { userId } = req.params;
-    const scholarship = await Scholarship.findOne().sort({ created_at: -1 });
+    const scholarship = await Scholarship.findOne().sort({ createdAt: -1 });
     const user = await User.findOne({ _id: userId });
 
     if (!user) return sendError(res, 'User not found!', 404);
