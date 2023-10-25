@@ -184,6 +184,17 @@ exports.getDonorContributions = async (req, res) => {
     }
 };
 
+// Get the winner of a scholarship
+exports.getWinner = async (req, res) => {
+    try {
+        const winner = await Scholarship.find().sort({ createdAt: -1 }).limit(1).skip(1).populate('winner', 'name avatar major school');
+        if (!winner) return sendError(res, 'Winner not found!', 404);
+        res.status(200).json({ message: 'Winner retrieved successfully', winner: winner[0] });
+    } catch (error) {
+        res.status(400).json({ message: 'Error retrieving winner', error });
+    }
+}
+
 
 // Set a scholarship as active or not
 exports.setActiveStatus = async (req, res) => {
