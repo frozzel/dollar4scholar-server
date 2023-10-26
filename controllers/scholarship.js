@@ -187,19 +187,52 @@ exports.getDonorContributions = async (req, res) => {
 // Get the winner of a scholarship
 exports.getWinner = async (req, res) => {
     try {
-        const winner = await Scholarship.find().sort({ createdAt: -1 }).limit(1).skip(1).populate('winner', 'name avatar major school');
+        const winners = await Scholarship.find({ active: true })
+        .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+        .skip(1) // Skip the most recent scholarship
+        .populate('winner', 'name avatar major school email phone address'); // Populate the 'winner' field        if (!winner) return sendError(res, 'Winner not found!', 404);
+        res.status(200).json({ message: 'Winner retrieved successfully', winner: winners[0] });
+    } catch (error) {
+        res.status(400).json({ message: 'Error retrieving winner', error });
+    }
+}
+// get all winners that are active
+exports.getAllWinnersActive = async (req, res) => {
+    try {
+        const winners = await Scholarship.find({ active: true })
+            .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+            .skip(1) // Skip the most recent winner
+        
+        if (!winners || winners.length === 0) {
+            return sendError(res, 'Winners not found!', 404);
+        }
+        
+        // Populate the 'winner' field
+        await Scholarship.populate(winners, { path: 'winner', select: 'name avatar major school email phone address' });
+
+        res.status(200).json({ message: 'Winners retrieved successfully', winners });
+    } catch (error) {
+        res.status(400).json({ message: 'Error retrieving winners', error });
+    }
+}
+
+// get winner by scholarship id
+exports.getWinnerById = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const winner = await Scholarship.findById(userId).populate('winner', 'name avatar major school email phone address birth ');
         if (!winner) return sendError(res, 'Winner not found!', 404);
-        res.status(200).json({ message: 'Winner retrieved successfully', winner: winner[0] });
+        res.status(200).json({ message: 'Winner retrieved successfully', winner });
     } catch (error) {
         res.status(400).json({ message: 'Error retrieving winner', error });
     }
 }
 
-
 // Set a scholarship as active or not
 exports.setActiveStatus = async (req, res) => {
+    const { userId } = req.params;
     try {
-        const scholarship = await Scholarship.findById(req.params.id);
+        const scholarship = await Scholarship.findById(userId);
         scholarship.active = req.body.active;
         await scholarship.save();
         res.status(200).json({ message: 'Scholarship status updated successfully', scholarship });
@@ -207,3 +240,25 @@ exports.setActiveStatus = async (req, res) => {
         res.status(400).json({ message: 'Error updating scholarship status', error });
     }
 };
+// aggregate  to get number of users
+exports.getNumberOfUsers = async (req, res) => {
+    try {
+        const users = await User.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    count: { $sum: 1 },
+                    studentCount: {
+                        $sum: { $cond: [{ $eq: ['$type', 'student'] }, 1, 0] }
+                    },
+                    donorCount: {
+                        $sum: { $cond: [{ $eq: ['$type', 'donor'] }, 1, 0] }
+                    }
+                }
+            }
+        ]);
+        res.status(200).json({ message: 'Number of users retrieved successfully', users });
+    } catch (error) {
+        res.status(400).json({ message: 'Error retrieving number of users', error });
+    }
+}
