@@ -6,9 +6,9 @@ const cron = require('node-cron');
 
 
 
-//schedule a cron job to run sunday at 11:59am during spring
+//schedule a cron job to run sunday at 11:59am 
 
-cron.schedule('59 11 * 3-10 0', async () => { // Changed to 11:59 AM during daylight saving time
+cron.schedule('59 11 * * 0', async () => { // 11:59am on Sunday
     updateWinner = async () => {
         try {
             const scholarship = await Scholarship.findOne().sort({createdAt: -1});
@@ -41,41 +41,6 @@ cron.schedule('59 11 * 3-10 0', async () => { // Changed to 11:59 AM during dayl
     timezone: "America/New_York"
   }
 );
-
-//schedule a cron job to run sunday at 11:59am during fall
-
-cron.schedule('59 11 * 11-3 0', async () => { // Scheduled for 11:59 AM in Eastern Standard Time (ES)
-    updateWinner = async () => {
-        try {
-            const scholarship = await Scholarship.findOne().sort({createdAt: -1});
-            const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
-            await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
-            console.log('Winner updated', winner);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    createNewScholarship = async () => {
-        try {
-            const scholarship = new Scholarship({
-                pot: 0,
-                active: false,
-                studentsEntered: [],
-                donorContributions: []
-            });
-            await scholarship.save();
-            console.log('New scholarship created Fall', scholarship);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    updateWinner();
-    createNewScholarship();
-}, {
-    scheduled: true,
-    timezone: "America/New_York" // Atlanta time zone
-});
-
 
 
 

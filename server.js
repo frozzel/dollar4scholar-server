@@ -1,46 +1,41 @@
 // create our server
 const express = require('express'); // import express
 require('express-async-errors'); // import express-async-errors
-//const morgan = require('morgan')    // import morgan
 const {errorHandler} = require('./utils/error')// import error handler
 require('dotenv').config()// import dotenv
 require('./config/connections')//   import database connection
-var cors = require('cors')
+var cors = require('cors')// import cors
 
- 
+ /////////////////////////// cors options ///////////////////////////
 var corsOptions = {
   origin: 'http://localhost:5173/',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
-
 const app = express();// create express app
+
+/////////////////////////// use middleware ///////////////////////////
+app.use(express.static('public'));
 app.use(express.json())// parse json request body
 app.use(cors())// enable cors
+app.use(errorHandler)// use error handler
 
-
+/////////////////////////// import http ///////////////////////////
 const server = require('http').Server(app); // import http
 
-app.use(errorHandler)// use error handler
-//app.use(morgan('dev'))// use morgan
-
+/////////////////////////// import routes ///////////////////////////
 const userRouter = require('./routes/user');// import user router
 const scholarshipRouter = require('./routes/scholarship');// import scholarship router
+const stripeRouter = require('./routes/stripe');// import stripe router
 
-
-
-
+/////////////////////////// use routes ///////////////////////////
 app.use('/api/user', userRouter);// use user router
 app.use('/api/scholarship', scholarshipRouter);// use scholarship router
+app.use('/api/stripe', stripeRouter);// use stripe router
 
 
-
+/////////////////////////// start server ///////////////////////////
 const PORT = process.env.PORT || 8080// define a port
-
-// test route to make sure everything is working (accessed at GET http://localhost:8080/api)
-app.get('/api', (req, res) => {
-    res.json({ message: 'Welcome to the API' });   
-});
 
 server.listen(PORT,  () => {// start express server on port 8080
     console.log(`................................................`)
