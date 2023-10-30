@@ -13,5 +13,6 @@ mongoose.connect(process.env.MONGODB_URI).// connect to mongodb
         console.log('😈😈😈     Mongo db connection error     😈😈😈');// log error
         console.log('');
         console.log('🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬');
+        console.log('');
         console.log(err);// log error
     });
