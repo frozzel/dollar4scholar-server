@@ -69,6 +69,10 @@ const userSchema = mongoose.Schema({
         required: true,
         default: 0
     },
+    stripeId: {
+        type: String,
+        required: false
+    },
 
 }, 
 { timestamps: true }
