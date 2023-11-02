@@ -18,7 +18,7 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true,
         default: 'student',
-        enum: ['student', 'admin', 'donor']
+        enum: ['fresh','student', 'admin', 'donor']
     },
     password: {
         type: String,
@@ -68,6 +68,10 @@ const userSchema = mongoose.Schema({
         type: Number,
         required: true,
         default: 0
+    },
+    stripeId: {
+        type: String,
+        required: false
     },
 
 }, 

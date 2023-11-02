@@ -16,17 +16,23 @@ const app = express();// create express app
 
 /////////////////////////// use middleware ///////////////////////////
 app.use(express.static('public'));
-app.use(express.json())// parse json request body
 app.use(cors())// enable cors
 app.use(errorHandler)// use error handler
 
-/////////////////////////// import http ///////////////////////////
-const server = require('http').Server(app); // import http
+/////////////////////////// import webhooks before express.json ///////////////////////////
+const webhooksRouter = require('./routes/webhooks');// import webhooks router
+app.use('/api/webhooks', webhooksRouter);// use webhooks router
+
+
+/////////////////////////// import middleware cont. ///////////////////////////
+app.use(express.json())// parse json request body
+
 
 /////////////////////////// import routes ///////////////////////////
 const userRouter = require('./routes/user');// import user router
 const scholarshipRouter = require('./routes/scholarship');// import scholarship router
 const stripeRouter = require('./routes/stripe');// import stripe router
+
 
 /////////////////////////// use routes ///////////////////////////
 app.use('/api/user', userRouter);// use user router
@@ -35,6 +41,7 @@ app.use('/api/stripe', stripeRouter);// use stripe router
 
 
 /////////////////////////// start server ///////////////////////////
+const server = require('http').Server(app); // import http
 const PORT = process.env.PORT || 8080// define a port
 
 server.listen(PORT,  () => {// start express server on port 8080

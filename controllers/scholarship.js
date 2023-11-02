@@ -4,24 +4,36 @@ const User = require('../models/user');
 const { sendError} = require('../utils/helper');
 const cron = require('node-cron');
 
-
-
 //schedule a cron job to run sunday at 11:59am 
 
-cron.schedule('59 11 * * 0', async () => { // 11:59am on Sunday
+cron.schedule('59 11 * * 0', async () => { // This will run every 2 minutes
     updateWinner = async () => {
         try {
             const scholarship = await Scholarship.findOne().sort({createdAt: -1});
-            const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
-            await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
-            console.log('Winner updated', winner);
+            
+            if (scholarship.studentsEntered.length !== 0) {
+                const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
+                await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
+                console.log('Winner updated', winner);
+                createNewScholarship();
+
+            } else {
+                 // If studentsEntered is empty, add specific user object id
+                // Example:
+                scholarship.studentsEntered.push('653feed0d6b6f35f89d5e6ce');
+                const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
+                await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
+                await scholarship.save();
+                console.log('No students entered');
+                createNewScholarship();
+            }
         } catch (error) {
             console.log(error);
         }
     }
+
     createNewScholarship = async () => {
         try {
-            
             const scholarship = new Scholarship({
                 pot: 0,
                 active: true,
@@ -29,18 +41,14 @@ cron.schedule('59 11 * * 0', async () => { // 11:59am on Sunday
                 donorContributions: []
             });
             await scholarship.save();
-            console.log('New scholarship created Spring', scholarship);
+            console.log('New scholarship created!', scholarship);
         } catch (error) {
             console.log(error);
         }
     }
+
     updateWinner();
-    createNewScholarship();
-}, {
-    scheduled: true,
-    timezone: "America/New_York"
-  }
-);
+}, null, true, 'America/New_York'); // The last argument sets the timezone
 
 
 
@@ -141,7 +149,7 @@ exports.addMoneyToPot = async (req, res) => {
 // get donor contributions for a scholarships
 exports.getDonorContributions = async (req, res) => {
     try {
-        const donations = await Contribution.find().populate('userId');
+        const donations = await Contribution.find().populate('userId').sort({ createdAt: -1 }).limit(6);
         if (!donations) return sendError(res, 'Donations not found!', 404);
         res.status(200).json({ message: 'Donor contributions retrieved successfully', donations });
     } catch (error) {
@@ -218,6 +226,9 @@ exports.getNumberOfUsers = async (req, res) => {
                     },
                     donorCount: {
                         $sum: { $cond: [{ $eq: ['$type', 'donor'] }, 1, 0] }
+                    },
+                    freshmanCount: {
+                        $sum: { $cond: [{ $eq: ['$type', 'fresh'] }, 1, 0] }
                     }
                 }
             }

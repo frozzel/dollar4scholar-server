@@ -8,6 +8,24 @@ const { sendError, generateRandomByte, uploadImageToCloudLogo, uploadImageToClou
 const PasswordResetToken = require('../models/password_reset');
 const { sendEmail } = require('../utils/mail');
 const cloudinary = require('../cloud');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+
+async function createStripeCustomer({ name, email, phone }) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const Customer = await stripe.customers.create({
+        name: name,
+        email: email,
+      });
+
+      resolve(Customer);
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+}
 
 // create user
 exports.create = async (req, res) => {
@@ -19,8 +37,12 @@ exports.create = async (req, res) => {
   
     if (oldUser) return sendError(res, "This email is already in use!"); // if user already exists, return error
     // if (usernameExist) return sendError(res, "This username is already in use!"); // if username already exists, return error
-  
-    const newUser = new User({ name, email, password, type });// create new user
+
+    // create stripe customer
+    const customer = await createStripeCustomer({ email, name });
+    
+    // create new user
+    const newUser = new User({ name, email, password, type, stripeId: customer.id });// create new user
     await newUser.save();// save new user
   
     // generate 6 digit otp
@@ -258,7 +280,7 @@ exports.userInfo = async (req, res) => {
   const user = await User.findById(userId).populate('contribution')
   if (!user) return sendError(res, "user not found!", 404);
 
-  res.json({user: {id: user._id, name: user.name, email: user.email, type: user.type, isVerified: user.isVerified, avatar: user.avatar?.url, phone: user.phone, address: user.address, birth: user.birth, town: user.town, school: user.school, major: user.major, wallet: user.wallet, contribution: [user.contribution] }})
+  res.json({user: {id: user._id, name: user.name, email: user.email, type: user.type, isVerified: user.isVerified, avatar: user.avatar?.url, phone: user.phone, address: user.address, birth: user.birth, town: user.town, school: user.school, major: user.major, wallet: user.wallet, contribution: [user.contribution], stripeId: user.stripeId}})
 }
 
 // update user info for authenticated user in profile page
