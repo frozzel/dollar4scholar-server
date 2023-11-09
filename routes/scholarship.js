@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {createScholarship, addDonorContribution, getScholarshipPot, addMoneyToPot, getDonorContributions, getWinner, getAllWinnersActive, getWinnerById, setActiveStatus, getNumberOfUsers} = require('../controllers/scholarship');
+const {createScholarship, addDonorContribution, getScholarshipPot, addMoneyToPot, getDonorContributions, getWinner, getAllWinnersActive, getWinnerById, setActiveStatus, getNumberOfUsers, getAllScholarshipsActive} = require('../controllers/scholarship');
 const {isAuth} = require('../utils/auth');
 
 // Route to create a new scholarship
@@ -16,5 +16,6 @@ router.get('/winners', isAuth, getAllWinnersActive); // Route to get all the win
 router.get('/winner/:userId', isAuth, getWinnerById); // Route to get the winner of the scholarship
 router.put('/active/:userId', isAuth, setActiveStatus); // Route to set the active status of the scholarship
 router.get('/users', isAuth, getNumberOfUsers); // Route to get the number of users
+router.get('/active', getAllScholarshipsActive) // Route to get all the active scholarships aggregated
 
 module.exports = router;

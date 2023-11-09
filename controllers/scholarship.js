@@ -276,3 +276,15 @@ exports.getNumberOfUsers = async (req, res) => {
         res.status(400).json({ message: 'Error retrieving number of users', error });
     }
 }
+
+// get all scholarships that are active agrregate
+exports.getAllScholarshipsActive = async (req, res) => {
+    try {
+        const totalScholarships = await Scholarship.countDocuments();
+        const activeScholarships = await Scholarship.countDocuments({ active: true });
+
+        res.status(200).json({ message: 'Scholarships retrieved successfully', data: {totalScholarships, activeScholarships} });
+    } catch (error) {
+        res.status(400).json({ message: 'Error retrieving scholarships', error });
+    }
+}
