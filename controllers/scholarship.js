@@ -7,7 +7,7 @@ const { sendEmail } = require('../utils/mail');
 
 //schedule a cron job to run sunday at 11:59am 
 
-cron.schedule('59 16 * * 5', async () => { 
+cron.schedule('59 15 * * 5', async () => { 
     updateWinner = async () => {
         try {
             const scholarship = await Scholarship.findOne().sort({createdAt: -1});
