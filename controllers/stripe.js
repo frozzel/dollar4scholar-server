@@ -2,7 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { sendError} = require('../utils/helper');
 
 
-const YOUR_DOMAIN = 'http://localhost:5173';
+// const YOUR_DOMAIN = 'http://localhost:5173';
 
 // Calculate the total amount charged
 function calculateTotalAmount(transactionAmount) {
@@ -40,7 +40,7 @@ exports.createSession = async (req, res) => {
               customer_email: req.body.email, // Prepopulated email
               client_reference_id: req.body.client_reference_id, // This is for your internal reference
             mode: 'payment',
-            return_url: `${YOUR_DOMAIN}/return?session_id={CHECKOUT_SESSION_ID}`,
+            return_url: `${process.env.YOUR_DOMAIN}/return?session_id={CHECKOUT_SESSION_ID}`,
         });
         if(!session) return res.status(404).send('No session found');
         res.send({clientSecret: session.client_secret});
