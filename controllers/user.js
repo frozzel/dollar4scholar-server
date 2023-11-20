@@ -67,7 +67,7 @@ exports.create = async (req, res) => {
       <p>If you have any questions, feel free to email our customer success team. (We're lightning quick at replying.) We also offer live chat during business hours.</p>
       <p>Thanks!</p>
       <p>Team dollar4scholar</p>
-      <h3>dollar4scholar411@gmail.com</h3>
+      <h3>info@dollar4scholar.com</h3>
     `
     await sendEmail(newUser.email, newUser.name, 'Email Verification', htmlContent)
   
@@ -112,7 +112,7 @@ exports.verifyEmail = async (req, res) => {
     <p>If you have any questions, feel free to email our customer success team. (We're lightning quick at replying.) We also offer live chat during business hours.</p>
     <p>Thanks!</p>
     <p>dollar4scholar Team</p>
-    <h3>dollar4scholar411@gmail.com</h3>
+    <h3>info@dollar4scholar.com</h3>
   `
   await sendEmail(user.email, user.name, 'Welcome Email!', htmlContent)
 
@@ -164,7 +164,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
   <p>If you have any questions, feel free to email our customer success team. (We're lightning quick at replying.) We also offer live chat during business hours.</p>
   <p>Thanks!</p>
   <p>Team dollar4scholar</p>
-  <h3>dollar4scholar411@gmail.com</h3>
+  <h3>info@dollar4scholar.com</h3>
 `
 await sendEmail(user.email, user.name, 'Email Verification', htmlContent) 
 
@@ -211,7 +211,7 @@ exports.forgetPassword = async (req, res) => {
   <p>If you have any questions, feel free to email our customer success team. (We're lightning quick at replying.) We also offer live chat during business hours.</p>
   <p>Thanks!</p>
   <p>Team dollar4scholar</p>
-  <h3>dollar4scholar@gmail.com.com</h3>
+  <h3>info@dollar4scholar.com</h3>
   
 `
 await sendEmail(user.email, user.name, 'Reset Password Link', htmlContent)

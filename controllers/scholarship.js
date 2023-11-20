@@ -50,7 +50,7 @@ cron.schedule('59 16 * * 5', async () => {
               `
 
                 await sendEmail(winner.email, winner.name, 'Congratulations on Winning the Scholarship!', htmlContent)
-                await sendEmail("dollar4scholar411@gmail.com", "Admin", 'Scholarship Winner Announcement', htmlContent2)
+                await sendEmail("info@dollar4scholar.com", "Admin", 'Scholarship Winner Announcement', htmlContent2)
 
                 console.log('Winner updated', winner);
                 createNewScholarship();
