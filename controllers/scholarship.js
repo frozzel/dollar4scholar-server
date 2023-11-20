@@ -5,38 +5,9 @@ const { sendError} = require('../utils/helper');
 const cron = require('node-cron');
 const { sendEmail } = require('../utils/mail');
 
-//schedule a cron job to run sunday at 11:59am 
+//schedule a cron job to run Friday at 4:59pm 
 
-cron.schedule('15 4 * * *', async () => { 
-    updateWinner = async () => {
-        try {
-            const scholarship = await Scholarship.findOne().sort({createdAt: -1});
-            
-            console.log("test")
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    createNewScholarship = async () => {
-        try {
-            const scholarship = new Scholarship({
-                pot: 0,
-                active: true,
-                studentsEntered: [],
-                donorContributions: []
-            });
-            await scholarship.save();
-            console.log('New scholarship created!', scholarship);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    updateWinner();
-}, null, true, 'America/New_York'); // The last argument sets the timezone
-
-
+//insert test.js code here after time lapse for first scholarship
 
 // Create a new scholarship
 exports.createScholarship = async (req, res) => {

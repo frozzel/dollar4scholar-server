@@ -3,6 +3,7 @@ const moment = require('moment-timezone');
 
 const estTime = moment.tz('America/New_York').format();
 const estPlusSevenDays = moment.tz('America/New_York').add(7, 'days').format();
+const december15At459PM = moment.tz('2023-12-15 16:59', 'America/New_York').format();
 
 
 
@@ -14,7 +15,7 @@ const scholarshipSchema = new mongoose.Schema({
     },
     dateFinished: {
         type: Date,
-        default: estPlusSevenDays,
+        default: december15At459PM,
         required: true
     },
     donorContributions: [{
