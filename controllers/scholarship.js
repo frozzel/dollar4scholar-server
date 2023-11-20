@@ -58,7 +58,7 @@ cron.schedule('59 16 * * 5', async () => {
             } else {
                  // If studentsEntered is empty, add specific user object id
                 // Example:
-                scholarship.studentsEntered.push('653feed0d6b6f35f89d5e6ce');
+                scholarship.studentsEntered.push('6542dfc5c4341a1d679c1a69');
                 const winner = scholarship.studentsEntered[Math.floor(Math.random() * scholarship.studentsEntered.length)];
                 await Scholarship.findByIdAndUpdate(scholarship._id, { winner: winner });
                 await scholarship.save();

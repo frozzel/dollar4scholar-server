@@ -196,7 +196,7 @@ exports.forgetPassword = async (req, res) => {
   });
   await newPasswordResetToken.save();
 
-  const resetPasswordUrl = `http://localhost:5173/auth/reset-password?token=${token}&id=${user._id}`;
+  const resetPasswordUrl = `${process.env.YOUR_DOMAIN}/auth/reset-password?token=${token}&id=${user._id}`;
 
   ///////////////  change this url to production url when deploying to production /////////////
   // const resetPasswordUrl = `http://dollar4scholar.com/auth/reset-password?token=${token}&id=${user._id}`;
