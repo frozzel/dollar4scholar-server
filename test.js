@@ -1,4 +1,4 @@
-cron.schedule('59 16 * * 5', async () => { 
+cron.schedule('59 21 * * 5', async () => { 
     updateWinner = async () => {
         try {
             const scholarship = await Scholarship.findOne().sort({createdAt: -1});
@@ -61,13 +61,13 @@ cron.schedule('59 16 * * 5', async () => {
         }
     }
 
-createNewScholarship = async () => {
+    createNewScholarship = async () => {
         try {
             const scholarship = new Scholarship({
                 pot: 0,
                 active: true,
                 studentsEntered: [],
-                donorContributions: []
+                donorContributions: [],
             });
             await scholarship.save();
             console.log('New scholarship created!', scholarship);
