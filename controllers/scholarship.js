@@ -117,7 +117,7 @@ exports.getDonorContributions = async (req, res) => {
 // Get the winner of a scholarship
 exports.getWinner = async (req, res) => {
     try {
-        const winners = await Scholarship.find({ active: true })
+        const winners = await Scholarship.find({ })
         .sort({ createdAt: -1 }) // Sort by createdAt in descending order
         .skip(1) // Skip the most recent scholarship
         .populate('winner', 'name avatar major school email phone address'); // Populate the 'winner' field        if (!winner) return sendError(res, 'Winner not found!', 404);
