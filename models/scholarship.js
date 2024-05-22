@@ -5,7 +5,21 @@ const estTime = moment.tz('America/New_York').format();
 const estPlusSevenDays = moment.tz('America/New_York').add(7, 'days').format();
 const december15At459PM = moment.tz('2023-12-15 16:59', 'America/New_York').format();
 
+// Function to calculate the last day of each month for the next year
+const calculateLastDayOfEachMonth = () => {
+    const dates = [];
+    const now = moment.tz('America/New_York');
 
+    for (let i = 0; i < 12; i++) {
+        const date = now.clone().add(i, 'months').endOf('month');
+        dates.push(date.format());
+    }
+    return dates;
+};
+
+// Calculate last days and use the first one for the default value
+const lastDays = calculateLastDayOfEachMonth();
+const firstLastDay = lastDays[0];
 
 const scholarshipSchema = new mongoose.Schema({
     dateStarted: {
@@ -15,7 +29,7 @@ const scholarshipSchema = new mongoose.Schema({
     },
     dateFinished: {
         type: Date,
-        default: december15At459PM,
+        default: firstLastDay,
         required: true
     },
     donorContributions: [{

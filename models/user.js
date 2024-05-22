@@ -73,6 +73,11 @@ const userSchema = mongoose.Schema({
         type: String,
         required: false
     },
+    subscription: {
+        type: Boolean,
+        required: false,
+        default: false
+    },
 
 }, 
 { timestamps: true }

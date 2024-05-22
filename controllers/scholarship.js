@@ -9,7 +9,7 @@ const { sendEmail } = require('../utils/mail');
 
 //insert test.js code here after time lapse for first scholarship
 
-cron.schedule('59 21 * * 5', async () => { 
+cron.schedule('0 5 1 * *', async () => { 
     updateWinner = async () => {
         try {
             const scholarship = await Scholarship.findOne().sort({createdAt: -1});

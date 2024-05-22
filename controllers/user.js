@@ -279,8 +279,8 @@ exports.userInfo = async (req, res) => {
 
   const user = await User.findById(userId).populate('contribution')
   if (!user) return sendError(res, "user not found!", 404);
-
-  res.json({user: {id: user._id, name: user.name, email: user.email, type: user.type, isVerified: user.isVerified, avatar: user.avatar?.url, phone: user.phone, address: user.address, birth: user.birth, town: user.town, school: user.school, major: user.major, wallet: user.wallet, contribution: [user.contribution], stripeId: user.stripeId}})
+  
+  res.json({user: {id: user._id, name: user.name, email: user.email, type: user.type, isVerified: user.isVerified, avatar: user.avatar?.url, phone: user.phone, address: user.address, birth: user.birth, town: user.town, school: user.school, major: user.major, wallet: user.wallet, contribution: [user.contribution], stripeId: user.stripeId, subscription: user.subscription}})
 }
 
 // update user info for authenticated user in profile page
