@@ -16,6 +16,9 @@ function calculateTotalAmount(transactionAmount) {
 //create stripe session
 exports.createSession = async (req, res) => {
     const transactionAmount = req.body.transactionAmount; // Assuming you're sending this in the request body
+    // const transactionAmount = 2.79; // Assuming you're sending this in the request body
+
+    console.log(req.body);
 
     try {
         const totalAmountCharged = calculateTotalAmount(transactionAmount);
@@ -62,5 +65,23 @@ exports.getSessionStatus = async (req, res) => {
         });
     } catch (error) {
         res.status(400).json({ message: 'Error getting session status', error });
+    }
+};
+
+//create subscription
+exports.createSubscription = async (req, res) => {
+    // priceId = "price_1PLUlvHiFNaBiQsH7Y22so1X";
+    console.log(req.body);
+    try {
+        const subscription = await stripe.subscriptions.create({
+            customer: req.body.customerId,
+            items: [{price: req.body.priceId}],
+            // items: [{price: priceId}],
+            expand: ['latest_invoice.payment_intent'],
+        });
+        if(!subscription) return res.status(404).send('No subscription found');
+        res.send(subscription);
+    } catch (error) {
+        res.status(400).json({ message: 'Error creating subscription', error });
     }
 };
