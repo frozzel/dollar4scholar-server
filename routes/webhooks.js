@@ -10,6 +10,7 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 router.post('/verify', express.raw({type: 'application/json'}), async (request, response) => {
     const payload = request.body;
     const sig = request.headers['stripe-signature'];
+    
   
     let event;
   
@@ -23,6 +24,8 @@ router.post('/verify', express.raw({type: 'application/json'}), async (request, 
         if (!user) return sendError(response, "Invalid request, record not found!");
 
         if (user.stripeId !== client_reference_id) return sendError(response, "Invalid request, record not found!");
+
+        if (event.data.object.mode === 'payment') {
         const amountString = amount
         const amountNumber = parseFloat(amountString);
         const newWallet = user.wallet + amountNumber;
@@ -30,6 +33,12 @@ router.post('/verify', express.raw({type: 'application/json'}), async (request, 
         user.wallet = newWallet;
 
         await user.save();
+        }
+        if (event.data.object.mode === 'subscription') {
+           user.subscription = true;
+
+          await user.save();
+        }
 
         response.status(200).json({received: true}).end();
       }
