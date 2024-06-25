@@ -30,17 +30,14 @@ async function createStripeCustomer({ name, email, phone }) {
 // create user
 exports.create = async (req, res) => {
     const { name, email, password, type } = req.body;// get name, email, password, username from req.body
-     
   
     const oldUser = await User.findOne({ email }); // check if user already exists
     // const usernameExist = await User.findOne({ username }); // check if username already exists
-  
     if (oldUser) return sendError(res, "This email is already in use!"); // if user already exists, return error
     // if (usernameExist) return sendError(res, "This username is already in use!"); // if username already exists, return error
 
     // create stripe customer
     const customer = await createStripeCustomer({ email, name });
-    
     // create new user
     const newUser = new User({ name, email, password, type, stripeId: customer.id });// create new user
     await newUser.save();// save new user
