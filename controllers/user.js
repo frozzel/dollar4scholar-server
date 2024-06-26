@@ -29,6 +29,7 @@ async function createStripeCustomer({ name, email, phone }) {
 
 // create user
 exports.create = async (req, res) => {
+  try {
     const { name, email, password, type } = req.body;// get name, email, password, username from req.body
   
     const oldUser = await User.findOne({ email }); // check if user already exists
@@ -44,13 +45,14 @@ exports.create = async (req, res) => {
   
     // generate 6 digit otp
     let OTP = generateOPT();
+    console.log(OTP);
   
     // store otp inside our db
     const newEmailVerificationToken = new EmailVerificationToken({
       owner: newUser._id,
       token: OTP,
     });
-    
+    console.log(newEmailVerificationToken);
     await newEmailVerificationToken.save();// save otp to db
   
     // send that otp to our user
@@ -77,7 +79,11 @@ exports.create = async (req, res) => {
         type: newUser.type,
       },
     });
-  };
+  } catch (error) { 
+    console.log(error);
+    res.status(400).json({ message: "Error creating user", error });
+  }
+}
 
 // verify email
 exports.verifyEmail = async (req, res) => {
