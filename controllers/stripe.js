@@ -69,13 +69,13 @@ exports.getSessionStatus = async (req, res) => {
 };
 
 exports.createSubscription = async (req, res) => {
+    console.log("Subscription Request: ", req.body);
     // const transactionAmount = req.body.transactionAmount; // Assuming you're sending this in the request body
     const transactionAmount = 2.79; // Assuming you're sending this in the request body
     const  priceId  = process.env.STRIPE_PRICE_ID;
     const  prodId  = "prod_QBsWxC6kSHyoua"
 
-    // console.log(priceId), console.log(prodId);
-    // console.log(req.body);
+    console.log("Price ID: ", priceId);
 
     try {
         const totalAmountCharged = calculateTotalAmount(transactionAmount);
@@ -115,10 +115,12 @@ exports.createSubscription = async (req, res) => {
             // mode: 'payment',
             return_url: `${process.env.YOUR_DOMAIN}/return?session_id={CHECKOUT_SESSION_ID}`,
         });
+        console.log("Session: ", session);
         if(!session) return res.status(404).send('No session found');
+        console.log("Client Secret: ", session.client_secret);
         res.send({clientSecret: session.client_secret});
     } catch (error) {
-        console.log(error);
+        console.log("Error",error);
         res.status(400).json({ message: 'Error creating session', error });
     }
 };
