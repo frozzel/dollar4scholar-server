@@ -71,7 +71,7 @@ exports.getSessionStatus = async (req, res) => {
 exports.createSubscription = async (req, res) => {
     // const transactionAmount = req.body.transactionAmount; // Assuming you're sending this in the request body
     const transactionAmount = 2.79; // Assuming you're sending this in the request body
-    const  priceId  = "price_1PLUlvHiFNaBiQsH7Y22so1X";
+    const  priceId  = process.env.STRIPE_PRICE_ID;
     const  prodId  = "prod_QBsWxC6kSHyoua"
 
     // console.log(priceId), console.log(prodId);
