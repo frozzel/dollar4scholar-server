@@ -48,7 +48,7 @@ exports.create = async (req, res) => {
     console.log(OTP);
   
     // store otp inside our db
-    const newEmailVerificationToken = new EmailVerificationToken({
+    const newEmailVerificationToken = await new EmailVerificationToken({
       owner: newUser._id,
       token: OTP,
     });
@@ -97,7 +97,7 @@ exports.verifyEmail = async (req, res) => {
   if (user.isVerified) return sendError(res, "user is already verified!");
 
   const token = await EmailVerificationToken.findOne({ owner: userId });
-  if (!token) return sendError(res, "token not found!");
+  if (!token) return sendError(res, "token not found!, Please Request for a new Code!");
 
   const isMatched = await token.compareToken(OTP);
   if (!isMatched) return sendError(res, "Please submit a valid code!");
@@ -136,6 +136,7 @@ exports.verifyEmail = async (req, res) => {
 // resend email verification token
 exports.resendEmailVerificationToken = async (req, res) => {
   const { userId } = req.body;
+  console.log("Resend Email Verification Token: ", userId);
   
   const user = await User.findById(userId);
   if (!user) return sendError(res, "user not found!");
@@ -151,9 +152,11 @@ exports.resendEmailVerificationToken = async (req, res) => {
 
   // generate 6 digit otp
   let OTP = generateOPT();
+  console.log(OTP);
 
   // store otp inside our db
-  const newEmailVerificationToken = new EmailVerificationToken({ owner: user._id, token: OTP })
+  const newEmailVerificationToken = await new EmailVerificationToken({ owner: user._id, token: OTP })
+  console.log(newEmailVerificationToken);
 
   await newEmailVerificationToken.save()
 
