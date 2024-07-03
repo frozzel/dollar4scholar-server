@@ -40,19 +40,19 @@ exports.create = async (req, res) => {
     // create stripe customer
     const customer = await createStripeCustomer({ email, name });
     // create new user
-    const newUser = new User({ name, email, password, type, stripeId: customer.id });// create new user
+    const newUser = await new User({ name, email, password, type, stripeId: customer.id });// create new user
     await newUser.save();// save new user
   
     // generate 6 digit otp
     let OTP = generateOPT();
-    console.log(OTP);
+    // console.log(OTP);
   
     // store otp inside our db
     const newEmailVerificationToken = await new EmailVerificationToken({
       owner: newUser._id,
       token: OTP,
     });
-    console.log(newEmailVerificationToken);
+    // console.log(newEmailVerificationToken);
     await newEmailVerificationToken.save();// save otp to db
   
     // send that otp to our user

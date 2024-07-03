@@ -57,7 +57,6 @@ exports.getSessionStatus = async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
         if(!session) return res.status(404).send('No session found');
-        
         res.send({
             status: session.status,
             customer_email: session.customer_details.email,
@@ -69,20 +68,19 @@ exports.getSessionStatus = async (req, res) => {
 };
 
 exports.createSubscription = async (req, res) => {
-    console.log("Subscription Request: ", req.body);
+    // console.log("Subscription Request: ", req.body);
     // const transactionAmount = req.body.transactionAmount; // Assuming you're sending this in the request body
     const transactionAmount = 2.79; // Assuming you're sending this in the request body
     const  priceId  = process.env.STRIPE_PRICE_ID;
     const  prodId  = "prod_QBsWxC6kSHyoua"
 
-    console.log("Price ID: ", priceId);
+    // console.log("Price ID: ", priceId);
 
     try {
         const totalAmountCharged = calculateTotalAmount(transactionAmount);
 
         const session = await stripe.checkout.sessions.create({
             // customer: req.body.client_reference_id,
-            ui_mode: 'embedded',
             billing_address_collection: 'auto',
             mode: 'subscription',
             payment_method_types: ['card'],
@@ -116,9 +114,9 @@ exports.createSubscription = async (req, res) => {
             // mode: 'payment',
             return_url: `${process.env.YOUR_DOMAIN}/return?session_id={CHECKOUT_SESSION_ID}`,
         });
-        console.log("Session: ", session);
+        // console.log("Session: ", session);
         if(!session) return res.status(404).send('No session found');
-        console.log("Client Secret: ", session.client_secret);
+        // console.log("Client Secret: ", session.client_secret);
         res.send({clientSecret: session.client_secret});
     } catch (error) {
         console.log("Error",error);
