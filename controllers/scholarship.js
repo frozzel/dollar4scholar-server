@@ -71,13 +71,38 @@ cron.schedule('0 5 1 * *', async () => {
             console.log(error);
         }
     }
-
+    getUserBySubscription = async () => {
+        try {
+            const users = await User.find({ subscription: true });
+    
+            const array = users.map(user => user._id);
+    
+            // console.log('Users with subscription', array);
+    
+            // console.log('Number of users with subscription', users.length);
+            const data = {
+                userId: array,
+                numberUsers: users.length
+            }
+            // console.log(data);  
+            return data;
+            
+        } catch (error) {
+            console.log(error);
+        }
+    }
     createNewScholarship = async () => {
         try {
+            const data = await getUserBySubscription();
+            // console.log(data.userId);
+            // console.log(data.numberUsers);
+            const pot = data.numberUsers * 1.50;
+            // console.log(pot);
+            
             const scholarship = new Scholarship({
-                pot: 0,
+                pot: pot,
                 active: true,
-                studentsEntered: [],
+                studentsEntered: data.userId,
                 donorContributions: [],
             });
             await scholarship.save();
@@ -86,9 +111,82 @@ cron.schedule('0 5 1 * *', async () => {
             console.log(error);
         }
     }
+    //// Deprecated for Subscription Model ////
+    // createNewScholarship = async () => {
+    //     try {
+    //         const scholarship = new Scholarship({
+    //             pot: 0,
+    //             active: true,
+    //             studentsEntered: [],
+    //             donorContributions: [],
+    //         });
+    //         await scholarship.save();
+    //         console.log('New scholarship created!', scholarship);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
 
     updateWinner();
 }, null, true, 'America/New_York'); // The last argument sets the timezone
+
+/////////////////////////////////////////
+////// Subscription Model Testing //////
+////////////////////////////////////////
+
+// getUserBySubscription = async () => {
+//     try {
+//         const users = await User.find({ subscription: true });
+
+//         const array = users.map(user => user._id);
+
+//         // console.log('Users with subscription', array);
+
+//         // console.log('Number of users with subscription', users.length);
+//         const data = {
+//             userId: array,
+//             numberUsers: users.length
+//         }
+//         // console.log(data);  
+//         return data;
+        
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
+
+// createNewScholarship = async () => {
+//     try {
+//         const data = await getUserBySubscription();
+//         // console.log(data.userId);
+//         // console.log(data.numberUsers);
+//         const pot = data.numberUsers * 1.50;
+//         // console.log(pot);
+        
+//         const scholarship = new Scholarship({
+//             pot: pot,
+//             active: true,
+//             studentsEntered: data.userId,
+//             donorContributions: [],
+//         });
+//         await scholarship.save();
+//         console.log('New scholarship created!', scholarship);
+//     } catch (error) {
+//         console.log(error);
+//     }
+// }
+
+checkCurrentScholarship = async () => {
+    try {
+        const scholarship = await Scholarship.findOne().sort({createdAt: -1});
+        console.log(scholarship);
+    } catch (error) {
+        console.log(error);
+    }
+}
+// checkCurrentScholarship();
+// createNewScholarship();
+// getUserBySubscription();
 
 
 

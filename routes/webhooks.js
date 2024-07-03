@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const {isValidObjectId} = require('mongoose');
 const User = require('../models/user');
+const Scholarship = require('../models/scholarship');
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -33,9 +34,18 @@ router.post('/verify', express.raw({type: 'application/json'}), async (request, 
         user.wallet = newWallet;
 
         await user.save();
-        }
-        if (event.data.object.mode === 'subscription') {
+        } else if (event.data.object.mode === 'subscription') {
+          const scholarship = await Scholarship.findOne().sort({createdAt: -1});
+          if (!scholarship) return sendError(res, 'Scholarship not found!', 404)
+            scholarship.studentsEntered.push(user._id);
+            scholarship.pot += 1.50;
+          
+          await Scholarship.findByIdAndUpdate(scholarship._id, scholarship);
+
+
+
            user.subscription = true;
+
 
           await user.save();
         }
