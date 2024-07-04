@@ -1,5 +1,9 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { sendError} = require('../utils/helper');
+const User = require('../models/user')
+const { isValidObjectId } = require('mongoose');
+
+
 
 
 // const YOUR_DOMAIN = 'http://localhost:5173';
@@ -121,5 +125,28 @@ exports.createSubscription = async (req, res) => {
     } catch (error) {
         console.log("Error",error);
         res.status(400).json({ message: 'Error creating session', error });
+    }
+};
+
+///cancel subscription
+exports.cancelSubscription = async (req, res) => {
+    try {
+        const {userId} = req.params;
+
+        if (!isValidObjectId(userId)) return sendError(res, "Invalid user!");
+
+        const user = await User.findById(userId)
+        if (!user) return sendError(res, "user not found!", 404);
+
+        const deletedSubscription = await stripe.subscriptions.cancel(user.subscriptionId);
+        if(!deletedSubscription) return res.status(404).send('No subscription found');
+        user.subscription = false;
+        user.subscriptionId = null;
+        await user.save();
+        
+        res.send({message: "You Successfully Unsubscribed", deletedSubscription});
+    } catch (error) {
+        console.log("Error",error);
+        res.status(400).json({ message: 'Error deleting subscription', error });
     }
 };
