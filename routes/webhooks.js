@@ -42,10 +42,9 @@ router.post('/verify', express.raw({type: 'application/json'}), async (request, 
           
           await Scholarship.findByIdAndUpdate(scholarship._id, scholarship);
 
-
+           user.subscriptionId = event.data.object.subscription;
 
            user.subscription = true;
-
 
           await user.save();
         }
