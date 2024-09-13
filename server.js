@@ -32,12 +32,14 @@ app.use(express.json())// parse json request body
 const userRouter = require('./routes/user');// import user router
 const scholarshipRouter = require('./routes/scholarship');// import scholarship router
 const stripeRouter = require('./routes/stripe');// import stripe router
+const authRouter = require('./routes/auth');// import auth router
 
 
 /////////////////////////// use routes ///////////////////////////
 app.use('/api/user', userRouter);// use user router
 app.use('/api/scholarship', scholarshipRouter);// use scholarship router
 app.use('/api/stripe', stripeRouter);// use stripe router
+app.use('/api/auth', authRouter);// use auth router
 
 
 /////////////////////////// start server ///////////////////////////
