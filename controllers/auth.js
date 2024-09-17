@@ -7,8 +7,9 @@ var ApiControllers = require('authorizenet').APIControllers;
 
 exports.getAnAcceptPaymentPage = (req, res) => {
     console.log('🔑 Getting Hosted Payment Page Token 🔑');
+	console.log("User ID Server", req.body.params.refId);
     
-    var userId = req.body.userId;
+    var userId = req.body.params.userId;
     // console.log(req.body);
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
@@ -16,7 +17,8 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 
     // Create a CustomerDataType object to hold the customer ID
     var customerData = new ApiContracts.CustomerDataType();
-    customerData.setId(userId)  // Replace CUSTOMER_ID with your actual customer ID
+    // customerData.setId(userId)  // Replace CUSTOMER_ID with your actual customer ID
+	customerData.setEmail(req.body.params.refId);
 
 	var transactionRequestType = new ApiContracts.TransactionRequestType();
 	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
@@ -49,7 +51,7 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	getRequest.setMerchantAuthentication(merchantAuthenticationType);
 	getRequest.setTransactionRequest(transactionRequestType);
 	getRequest.setHostedPaymentSettings(alist);
-    getRequest.setRefId('1234569914');
+    // getRequest.setRefId(userId);
 
 	// console.log(JSON.stringify(getRequest.getJSON(), null, 2));
 		
