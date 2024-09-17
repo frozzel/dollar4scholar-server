@@ -29,6 +29,7 @@ async function createStripeCustomer({ name, email, phone }) {
 
 // create user
 exports.create = async (req, res) => {
+  console.log("Data Pass", req.body);
   try {
     const { name, email, password, type } = req.body;// get name, email, password, username from req.body
   
@@ -41,18 +42,19 @@ exports.create = async (req, res) => {
     const customer = await createStripeCustomer({ email, name });
     // create new user
     const newUser = await new User({ name, email, password, type, stripeId: customer.id });// create new user
+    console.log("New User Created", newUser);
     await newUser.save();// save new user
   
     // generate 6 digit otp
     let OTP = generateOPT();
-    // console.log(OTP);
+    console.log("OTP:", OTP);
   
     // store otp inside our db
     const newEmailVerificationToken = await new EmailVerificationToken({
       owner: newUser._id,
       token: OTP,
     });
-    // console.log(newEmailVerificationToken);
+    console.log("Email Verification Token", newEmailVerificationToken);
     await newEmailVerificationToken.save();// save otp to db
   
     // send that otp to our user
@@ -70,7 +72,8 @@ exports.create = async (req, res) => {
     `
     await sendEmail(newUser.email, newUser.name, 'Email Verification', htmlContent)
   
-  
+    console.log("Email Sent");
+    console.log("New User", newUser);
     res.status(201).json({
       user: {
         id: newUser._id,
@@ -148,7 +151,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
     owner: userId,
   });
   if (alreadyHasToken)
-    return sendError(res, "Only after one hour you can request for another token!");
+    return sendError(res, "Only after one day you can request for another token!");
 
   // generate 6 digit otp
   let OTP = generateOPT();
@@ -156,7 +159,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
 
   // store otp inside our db
   const newEmailVerificationToken = await new EmailVerificationToken({ owner: user._id, token: OTP })
-  console.log(newEmailVerificationToken);
+  console.log(newEmailVerificationToken, "Email:", user.email);
 
   await newEmailVerificationToken.save()
 
