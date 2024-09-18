@@ -46,7 +46,7 @@ app.use('/api/auth', authRouter);// use auth router
 const server = require('http').Server(app); // import http
 const PORT = process.env.PORT || 8080// define a port
 
-app.get('/', (req, res) => {
+app.get('/8008', (req, res) => {
   const date = new Date();
   res.send(`<body style="background: #333; display: flex">
       <div style="width: 30%; height: auto"></div>
