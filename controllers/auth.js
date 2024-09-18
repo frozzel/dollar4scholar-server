@@ -7,10 +7,16 @@ var ApiControllers = require('authorizenet').APIControllers;
 
 exports.getAnAcceptPaymentPage = (req, res) => {
     console.log('🔑 Getting Hosted Payment Page Token 🔑');
-	console.log("User ID Server", req.body.params.refId);
-    
+	console.log("User userId Server", req.body.params.userId);
+	console.log("User email Server", req.body.params.email);
+	console.log("User refId Server", req.body.params.refId);
+	console.log("User amount Server", req.body.params.amount);
     var userId = req.body.params.userId;
-    // console.log(req.body);
+	var email = req.body.params.email;
+
+    var refId = req.body.params.refId;
+	var amount = req.body.params.amount;
+   
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
 	merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
@@ -18,11 +24,11 @@ exports.getAnAcceptPaymentPage = (req, res) => {
     // Create a CustomerDataType object to hold the customer ID
     var customerData = new ApiContracts.CustomerDataType();
     // customerData.setId(userId)  // Replace CUSTOMER_ID with your actual customer ID
-	customerData.setEmail(req.body.params.refId);
+	customerData.setEmail(email);
 
 	var transactionRequestType = new ApiContracts.TransactionRequestType();
 	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
-	transactionRequestType.setAmount(12.00);
+	transactionRequestType.setAmount(amount);
     transactionRequestType.setCustomer(customerData);
 	
 	var setting1 = new ApiContracts.SettingType();
@@ -51,7 +57,7 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	getRequest.setMerchantAuthentication(merchantAuthenticationType);
 	getRequest.setTransactionRequest(transactionRequestType);
 	getRequest.setHostedPaymentSettings(alist);
-    // getRequest.setRefId(userId);
+    getRequest.setRefId(refId);
 
 	// console.log(JSON.stringify(getRequest.getJSON(), null, 2));
 		
@@ -90,4 +96,21 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 
 		// res.json(response.token);
 	});
+}
+
+exports.webhook = async (req, res) => {
+    console.log(req.body.payload.id);
+    const transactionId = req.body.payload.id;
+    let customerId = 0;
+
+
+    getTransactionDetails(transactionId, (response) => {
+        console.log('response', response);
+        if(response.getTransaction() !== null){
+            customerId = response.getTransaction().getCustomer().getEmail();
+        }
+        console.log('custumer Email', customerId);
+        res.json(response);
+    });
+    
 }
