@@ -1,6 +1,7 @@
 const { sendError} = require('../utils/helper');
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
+const {getTransactionDetails} = require('../utils/auth.js');
 
 
 // // Route to create payment page
