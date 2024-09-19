@@ -27,6 +27,47 @@ async function createStripeCustomer({ name, email, phone }) {
   });
 }
 
+async function createAuthorizeNetCustomerProfile({ email, name }) {
+  return new Promise(async (resolve, reject) => {
+    var ApiContracts = require('authorizenet').APIContracts;
+    var ApiControllers = require('authorizenet').APIControllers;
+
+    var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
+    merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
+    merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
+
+    var customerProfileType = new ApiContracts.CustomerProfileType();
+    customerProfileType.setEmail(email);
+    customerProfileType.setDescription(name);
+    // customerProfileType.setMerchantCustomerId(name);
+
+    var createRequest = new ApiContracts.CreateCustomerProfileRequest();
+    createRequest.setMerchantAuthentication(merchantAuthenticationType);
+    createRequest.setProfile(customerProfileType);
+
+    var ctrl = new ApiControllers.CreateCustomerProfileController(createRequest.getJSON());
+    ctrl.execute(function () {
+      var apiResponse = ctrl.getResponse();
+      var response = new ApiContracts.CreateCustomerProfileResponse(apiResponse);
+
+      if (response != null) {
+        if (response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK) {
+          console.log(response.getCustomerProfileId());
+          resolve(response.getCustomerProfileId());
+        } else {
+          reject(response.getMessages().getMessage()[0].getText());
+        }
+      } else {
+        reject("Null response received");
+      }
+    });
+  });
+}
+
+// console.log(createAuthorizeNetCustomerProfile({ email: "frozzel@me.com", name: "Dennis Hickox" }));
+// const customerProfileId =  createAuthorizeNetCustomerProfile({ email: "frozzel@me.com", name: "Dennis Hickox" });
+// console.log(customerProfileId);
+
 // create user
 exports.create = async (req, res) => {
   console.log("Data Pass", req.body);
@@ -39,9 +80,15 @@ exports.create = async (req, res) => {
     // if (usernameExist) return sendError(res, "This username is already in use!"); // if username already exists, return error
 
     // create stripe customer
-    const customer = await createStripeCustomer({ email, name });
+    // const customer = await createStripeCustomer({ email, name });
+
+    // create authorizenet customer profile
+    const customer = await createAuthorizeNetCustomerProfile({ email, name });
+    if (!customer) return sendError(res, "Error creating user profile!");
+    console.log("Customer Profile", customer);
+
     // create new user
-    const newUser = await new User({ name, email, password, type, stripeId: customer.id });// create new user
+    const newUser = await new User({ name, email, password, type, stripeId: customer });// create new user
     console.log("New User Created", newUser);
     await newUser.save();// save new user
   

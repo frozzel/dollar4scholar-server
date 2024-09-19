@@ -2,6 +2,7 @@ const { sendError} = require('../utils/helper');
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
 const {getTransactionDetails} = require('../utils/auth.js');
+const { EmailCampaignsApi } = require('@getbrevo/brevo');
 
 
 // // Route to create payment page
@@ -12,11 +13,13 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	console.log("User email Server", req.body.params.email);
 	console.log("User refId Server", req.body.params.refId);
 	console.log("User amount Server", req.body.params.amount);
+	console.log("User stripeId Server", req.body.params.stripeId);
     var userId = req.body.params.userId;
 	var email = req.body.params.email;
 
     var refId = req.body.params.refId;
 	var amount = req.body.params.amount;
+	var customerProfileId = req.body.params.stripeId;
    
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
@@ -27,10 +30,22 @@ exports.getAnAcceptPaymentPage = (req, res) => {
     // customerData.setId(userId)  // Replace CUSTOMER_ID with your actual customer ID
 	customerData.setEmail(email);
 
+
+	// Create an OrderType object to hold the order information
+	const orderType = new ApiContracts.OrderType();
+    // orderType.setInvoiceNumber(userId);
+    orderType.setDescription("Dollar4Scholar  $" + amount + " Monthly Subscription " + "Email: " + email + " User ID: " + userId);
+
+	// Create a CustomerProfilePaymentType object to hold the customer profile ID
+	const profile = new ApiContracts.CustomerProfilePaymentType();
+    profile.setCustomerProfileId(customerProfileId);
+	
 	var transactionRequestType = new ApiContracts.TransactionRequestType();
 	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
 	transactionRequestType.setAmount(amount);
     transactionRequestType.setCustomer(customerData);
+	transactionRequestType.setOrder(orderType);
+	transactionRequestType.setProfile(profile); // Set the customer profile here
 	
 	var setting1 = new ApiContracts.SettingType();
 	setting1.setSettingName('hostedPaymentButtonOptions');
@@ -45,11 +60,17 @@ exports.getAnAcceptPaymentPage = (req, res) => {
     returnUrlSetting.setSettingName('hostedPaymentReturnOptions');
     returnUrlSetting.setSettingValue(`{"url": "${process.env.PAYMENT_REDIRECT}", "urlText": "Home", "cancelUrl": "${process.env.PAYMENT_CANCEL}", "cancelUrlText": "Cancel"} `);
 
+	// Add Payment Options to exclude eChecks
+	var paymentOptionsSetting = new ApiContracts.SettingType();
+	paymentOptionsSetting.setSettingName('hostedPaymentPaymentOptions');
+	paymentOptionsSetting.setSettingValue('{ "cardCodeRequired": true, "showCreditCard": true, "showBankAccount": false }'); // This setting may change depending on your requirements
+
+
 	var settingList = [];
 	settingList.push(setting1);
 	settingList.push(setting2);
     settingList.push(returnUrlSetting); // Add the return URL setting to the list
-   
+	settingList.push(paymentOptionsSetting); // Include the payment options setting
 
 	var alist = new ApiContracts.ArrayOfSetting();
 	alist.setSetting(settingList);
