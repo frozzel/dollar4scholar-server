@@ -119,7 +119,7 @@ exports.getTransactionDetails = async (transactionId, callback) => {
     });
 }
 
-const createCustomerProfileFromTransaction = async (transactionId, callback) => {
+exports.createCustomerProfileFromTransaction = async (transactionId, callback) => {
 
 	var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
@@ -167,12 +167,10 @@ const createCustomerProfileFromTransaction = async (transactionId, callback) => 
 	});
 }
 
-if (require.main === module) {
-	createCustomerProfileFromTransaction('60158389454', function(){
-		console.log('createCustomerProfileFromTransaction call complete.');
-	});
-}
 
-createCustomerProfileFromTransaction('120040213020', function(){
-    console.log('createCustomerProfileFromTransaction call complete.');
-});
+
+
+// const message = createCustomerProfileFromTransaction('120040369898', (response) => {
+//     console.log(response);
+// });
+// console.log(message);

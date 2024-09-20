@@ -1,8 +1,8 @@
 const { sendError} = require('../utils/helper');
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
-const {getTransactionDetails} = require('../utils/auth.js');
-const { EmailCampaignsApi } = require('@getbrevo/brevo');
+const {getTransactionDetails, createCustomerProfileFromTransaction} = require('../utils/auth.js');
+
 
 
 // // Route to create payment page
@@ -34,7 +34,7 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	// Create an OrderType object to hold the order information
 	const orderType = new ApiContracts.OrderType();
     // orderType.setInvoiceNumber(userId);
-    orderType.setDescription("Dollar4Scholar  $" + amount + " Monthly Subscription " + "Email: " + email + " User ID: " + userId);
+    orderType.setDescription("Dollar4Scholar $" + amount + " Monthly Subscription " + "Email: " + email + " User ID: " + userId);
 
 	// Create a CustomerProfilePaymentType object to hold the customer profile ID
 	const profile = new ApiContracts.CustomerProfilePaymentType();
@@ -68,7 +68,7 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	// Add setting to ensure save payment option is always checked
 	var savePaymentOptionsSetting = new ApiContracts.SettingType();
 	savePaymentOptionsSetting.setSettingName('hostedPaymentCustomerOptions');
-	savePaymentOptionsSetting.setSettingValue('{ "addPaymentProfile": false }');
+	savePaymentOptionsSetting.setSettingValue('{ "addPaymentProfile": true, "profileSavePolicy": "addUpdate" }');
 
 	var settingList = [];
 	settingList.push(setting1);
@@ -127,17 +127,28 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 
 exports.webhook = async (req, res) => {
     console.log(req.body.payload.id);
+	console.log('🔑 Webhook Received 🔑');
+	console.log(req.body);
     const transactionId = req.body.payload.id;
     let customerId = 0;
 
 
     getTransactionDetails(transactionId, (response) => {
         console.log('response', response);
+		console.log(response.transaction.customer.email)
         // if(response.getTransaction() !== null){
         //     customerId = response.getTransaction().getCustomer().getEmail();
         // }
         // console.log('custumer Email', response);
-        res.json(response);
+        // res.json(response);
     });
+	createCustomerProfileFromTransaction(transactionId, (response) => {
+		console.log('response', response);
+		// if(response.getTransaction() !== null){
+		const	customerProfileId = response.getCustomerProfileId();
+		console.log('Customer Profile ID', customerProfileId);
+		
+		res.json(response);
+	});
     
 }
