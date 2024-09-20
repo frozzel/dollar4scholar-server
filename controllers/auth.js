@@ -9,11 +9,11 @@ const { EmailCampaignsApi } = require('@getbrevo/brevo');
 
 exports.getAnAcceptPaymentPage = (req, res) => {
     console.log('🔑 Getting Hosted Payment Page Token 🔑');
-	console.log("User userId Server", req.body.params.userId);
-	console.log("User email Server", req.body.params.email);
-	console.log("User refId Server", req.body.params.refId);
-	console.log("User amount Server", req.body.params.amount);
-	console.log("User stripeId Server", req.body.params.stripeId);
+	// console.log("User userId Server", req.body.params.userId);
+	// console.log("User email Server", req.body.params.email);
+	// console.log("User refId Server", req.body.params.refId);
+	// console.log("User amount Server", req.body.params.amount);
+	// console.log("User stripeId Server", req.body.params.stripeId);
     var userId = req.body.params.userId;
 	var email = req.body.params.email;
 
@@ -65,12 +65,17 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	paymentOptionsSetting.setSettingName('hostedPaymentPaymentOptions');
 	paymentOptionsSetting.setSettingValue('{ "cardCodeRequired": true, "showCreditCard": true, "showBankAccount": false }'); // This setting may change depending on your requirements
 
+	// Add setting to ensure save payment option is always checked
+	var savePaymentOptionsSetting = new ApiContracts.SettingType();
+	savePaymentOptionsSetting.setSettingName('hostedPaymentCustomerOptions');
+	savePaymentOptionsSetting.setSettingValue('{ "addPaymentProfile": false }');
 
 	var settingList = [];
 	settingList.push(setting1);
 	settingList.push(setting2);
     settingList.push(returnUrlSetting); // Add the return URL setting to the list
 	settingList.push(paymentOptionsSetting); // Include the payment options setting
+	settingList.push(savePaymentOptionsSetting); // Include the save payment options setting
 
 	var alist = new ApiContracts.ArrayOfSetting();
 	alist.setSetting(settingList);
@@ -128,10 +133,10 @@ exports.webhook = async (req, res) => {
 
     getTransactionDetails(transactionId, (response) => {
         console.log('response', response);
-        if(response.getTransaction() !== null){
-            customerId = response.getTransaction().getCustomer().getEmail();
-        }
-        console.log('custumer Email', customerId);
+        // if(response.getTransaction() !== null){
+        //     customerId = response.getTransaction().getCustomer().getEmail();
+        // }
+        // console.log('custumer Email', response);
         res.json(response);
     });
     
