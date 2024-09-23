@@ -9,17 +9,23 @@ const {getTransactionDetails, createCustomerProfileFromTransaction} = require('.
 
 exports.getAnAcceptPaymentPage = (req, res) => {
     console.log('🔑 Getting Hosted Payment Page Token 🔑');
+	// console.log(req.body);
 	// console.log("User userId Server", req.body.params.userId);
 	// console.log("User email Server", req.body.params.email);
 	// console.log("User refId Server", req.body.params.refId);
 	// console.log("User amount Server", req.body.params.amount);
 	// console.log("User stripeId Server", req.body.params.stripeId);
-    var userId = req.body.params.userId;
-	var email = req.body.params.email;
+    var userId = req.body.userId;
+	var email = req.body.email;
 
-    var refId = req.body.params.refId;
-	var amount = req.body.params.amount;
-	var customerProfileId = req.body.params.stripeId;
+    var refId = req.body.refId;
+	var amount = req.body.amount;
+	// var customerProfileId = req.body.stripeId;
+	// console.log('User ID', userId);
+	// console.log('User Email', email);
+	// console.log('User Ref ID', refId);
+	// console.log('User Amount', amount);
+
    
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
@@ -37,15 +43,15 @@ exports.getAnAcceptPaymentPage = (req, res) => {
     orderType.setDescription("Dollar4Scholar $" + amount + " Monthly Subscription " + "Email: " + email + " User ID: " + userId);
 
 	// Create a CustomerProfilePaymentType object to hold the customer profile ID
-	const profile = new ApiContracts.CustomerProfilePaymentType();
-    profile.setCustomerProfileId(customerProfileId);
+	// const profile = new ApiContracts.CustomerProfilePaymentType();
+    // profile.setCustomerProfileId(customerProfileId);
 	
 	var transactionRequestType = new ApiContracts.TransactionRequestType();
 	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
 	transactionRequestType.setAmount(amount);
     transactionRequestType.setCustomer(customerData);
 	transactionRequestType.setOrder(orderType);
-	transactionRequestType.setProfile(profile); // Set the customer profile here
+	// transactionRequestType.setProfile(profile); // Set the customer profile here
 	
 	var setting1 = new ApiContracts.SettingType();
 	setting1.setSettingName('hostedPaymentButtonOptions');
@@ -66,16 +72,16 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	paymentOptionsSetting.setSettingValue('{ "cardCodeRequired": true, "showCreditCard": true, "showBankAccount": false }'); // This setting may change depending on your requirements
 
 	// Add setting to ensure save payment option is always checked
-	var savePaymentOptionsSetting = new ApiContracts.SettingType();
-	savePaymentOptionsSetting.setSettingName('hostedPaymentCustomerOptions');
-	savePaymentOptionsSetting.setSettingValue('{ "addPaymentProfile": true, "profileSavePolicy": "addUpdate" }');
+	// var savePaymentOptionsSetting = new ApiContracts.SettingType();
+	// savePaymentOptionsSetting.setSettingName('hostedPaymentCustomerOptions');
+	// savePaymentOptionsSetting.setSettingValue('{ "addPaymentProfile": true, "profileSavePolicy": "addUpdate" }');
 
 	var settingList = [];
 	settingList.push(setting1);
 	settingList.push(setting2);
     settingList.push(returnUrlSetting); // Add the return URL setting to the list
 	settingList.push(paymentOptionsSetting); // Include the payment options setting
-	settingList.push(savePaymentOptionsSetting); // Include the save payment options setting
+	// settingList.push(savePaymentOptionsSetting); // Include the save payment options setting
 
 	var alist = new ApiContracts.ArrayOfSetting();
 	alist.setSetting(settingList);
@@ -103,7 +109,7 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 		{
 			if(response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK)
 			{
-				console.log('🔑 Hosted payment page token Retrieved 🔑');
+				console.log('🤑🤑 Hosted payment page token Retrieved 🤑🤑');
 				// console.log(response.getToken());
                 res.json(response.getToken());
 			}

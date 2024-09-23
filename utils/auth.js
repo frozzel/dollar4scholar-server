@@ -55,6 +55,8 @@ exports.signInValidator = [
 
 // check if user is authenticated
 exports.isAuth = async(req, res, next) => {
+    // console.log('🔑 Checking User Authentication 🔑');
+
     const token =  req.headers?.authorization
     if (!token) return sendError(res, 'Invalid token!', 401)
   
