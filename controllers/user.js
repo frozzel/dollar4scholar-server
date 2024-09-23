@@ -83,12 +83,12 @@ exports.create = async (req, res) => {
     // const customer = await createStripeCustomer({ email, name });
 
     // create authorizenet customer profile
-    const customer = await createAuthorizeNetCustomerProfile({ email, name });
-    if (!customer) return sendError(res, "Error creating user profile!");
-    console.log("Customer Profile", customer);
+    // const customer = await createAuthorizeNetCustomerProfile({ email, name });
+    // if (!customer) return sendError(res, "Error creating user profile!");
+    // console.log("Customer Profile", customer);
 
     // create new user
-    const newUser = await new User({ name, email, password, type, stripeId: customer });// create new user
+    const newUser = await new User({ name, email, password, type,  });// create new user
     console.log("New User Created", newUser);
     await newUser.save();// save new user
   
@@ -97,12 +97,24 @@ exports.create = async (req, res) => {
     console.log("OTP:", OTP);
   
     // store otp inside our db
-    const newEmailVerificationToken = await new EmailVerificationToken({
+    const newEmailVerificationToken = new EmailVerificationToken({
       owner: newUser._id,
       token: OTP,
     });
     console.log("Email Verification Token", newEmailVerificationToken);
     await newEmailVerificationToken.save();// save otp to db
+    // verify email token
+    const token = await EmailVerificationToken.findOne({ owner
+      : newUser._id });
+
+      if (!token || token === null) {
+        console.log("Token Not Found", token);
+        await newEmailVerificationToken.save();
+      } else {
+        console.log("Token created", token);
+      }
+    
+
   
     // send that otp to our user
     const htmlContent = `
