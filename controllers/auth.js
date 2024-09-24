@@ -1,7 +1,8 @@
-const { sendError} = require('../utils/helper');
+const User = require('../models/user')
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
-const {getTransactionDetails, createCustomerProfileFromTransaction} = require('../utils/auth.js');
+const {getTransactionDetails, createCustomerProfileFromTransaction, createSubscriptionFromCustomerProfile} = require('../utils/auth.js');
+const { sendError } = require('../utils/helper.js');
 
 
 
@@ -134,24 +135,53 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 exports.webhook = async (req, res) => {
     console.log(req.body.payload.id);
 	console.log('🔑 Webhook Received 🔑');
-	console.log(req.body);
+	// console.log(req.body);
     const transactionId = req.body.payload.id;
-    let customerId = 0;
+	const amount = req.body.payload.authAmount;
 
+	// console.log("amount: ", amount);
 	
 	const userEmail = await getTransactionDetails( {transactionId: transactionId});
 
-	console.log('User Email', userEmail);
+	console.log('User Email: ', userEmail);
 	
 
-	const profileId = await createCustomerProfileFromTransaction({transactionId: transactionId})
+	const profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})
 
-	console.log('👤 Customer Profile ID', profileId);
+	console.log('👤 Customer Profile ID: ', profileInfo);
 
+	const customerProfileId = profileInfo.customerProfileId;
+	const customerPaymentProfileIdList = profileInfo.customerPaymentProfileIdList.numericString;
+	const customerShippingAddressIdList = profileInfo.customerShippingAddressIdList.numericString;
+ 
+
+	// Get the last string in the array and convert it to a plain string
+	const customerPaymentProfileId = customerPaymentProfileIdList[customerPaymentProfileIdList.length - 1].toString();
+
+	// Get the last string in the shipping address array and convert it to a plain string
+	const customerAddressId = customerShippingAddressIdList[customerShippingAddressIdList.length - 1].toString();
+
+	console.log("Customer Payment Profile Id", customerPaymentProfileId); // "923836061"
+	console.log("customerProfileId: ", customerProfileId);
+	console.log("customerAddressId: ", customerAddressId);
 	
 
+	
+	const subscriptionId = await createSubscriptionFromCustomerProfile({customerProfileId, amount, customerPaymentProfileId, customerAddressId});
+
+	console.log('🔄  Subscription ID: ', subscriptionId );
+
+	const user = await User.findOne({email: userEmail});
+	if (!user) return sendError(res, 404, 'User not found');
+	user.stripeId = customerProfileId;
+	user.subscriptionId = subscriptionId;
+	user.subscription = true;
+
+	await user.save();
+	console.log('👤 User: ', user);
 
 
-	res.json({email: userEmail, profileId: profileId});
+
+	res.json({email: userEmail, customerProfileId: customerProfileId, customerPaymentProfileId: customerPaymentProfileId, customerAddressId: customerAddressId, subscriptionId });
     
 }

@@ -159,7 +159,7 @@ exports.createCustomerProfileFromTransaction = async ({transactionId}) => {
 			{
 				console.log('Successfully created a customer payment profile with id: ' + response.getCustomerProfileId() + 
 					' from a transaction : ' + transactionId );
-                resolve(response.getCustomerProfileId());
+                resolve(response);
 			}
 			else
 			{
@@ -186,11 +186,27 @@ exports.createCustomerProfileFromTransaction = async ({transactionId}) => {
 );
 }   
 
-exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, customerPaymentProfileId, customerAddressId, callback}) =>{
+exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amount, customerPaymentProfileId, customerAddressId}) =>{
     console.log('🔄 Creating Subscription From Customer Profile 🔄');
+    return new Promise(async (resolve, reject) => {
+        const today = new Date();
+        const startDate = new Date(today);
+        
+        // Set the month to the next month
+        startDate.setMonth(today.getMonth() + 1);
+        
+        // Function to format the date as YYYY-MM-DD
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero
+            const day = String(date.getDate()).padStart(2, '0'); // Add leading zero
+            return `${year}-${month}-${day}`;
+        };
+        
+        console.log('Start Date:', formatDate(startDate));
 	var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
-	merchantAuthenticationType.setName(constants.apiLoginKey);
-	merchantAuthenticationType.setTransactionKey(constants.transactionKey);
+	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
+	merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
 
 	var interval = new ApiContracts.PaymentScheduleType.Interval();
 	interval.setLength(1);
@@ -198,9 +214,10 @@ exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, custo
 
 	var paymentScheduleType = new ApiContracts.PaymentScheduleType();
 	paymentScheduleType.setInterval(interval);
-	paymentScheduleType.setStartDate(utils.getDate());
-	paymentScheduleType.setTotalOccurrences(5);
-	paymentScheduleType.setTrialOccurrences(0);
+	paymentScheduleType.setStartDate(formatDate(startDate));
+	paymentScheduleType.setTotalOccurrences(9999);
+    // paymentScheduleType.setTrailAmount(0);
+	// paymentScheduleType.setTrialOccurrences(0);
 
 	var customerProfileIdType = new ApiContracts.CustomerProfileIdType();
 	customerProfileIdType.setCustomerProfileId(customerProfileId);
@@ -208,17 +225,17 @@ exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, custo
 	customerProfileIdType.setCustomerAddressId(customerAddressId);
 
 	var arbSubscription = new ApiContracts.ARBSubscriptionType();
-	arbSubscription.setName(utils.getRandomString('Name'));
+	arbSubscription.setName('Monthly Subscription $2.79 Dollar4Scholar');
 	arbSubscription.setPaymentSchedule(paymentScheduleType);
-	arbSubscription.setAmount(utils.getRandomAmount());
-	arbSubscription.setTrialAmount(utils.getRandomAmount());
+	arbSubscription.setAmount(amount);
+	// arbSubscription.setTrialAmount(utils.getRandomAmount());
 	arbSubscription.setProfile(customerProfileIdType);
 
 	var createRequest = new ApiContracts.ARBCreateSubscriptionRequest();
 	createRequest.setMerchantAuthentication(merchantAuthenticationType);
 	createRequest.setSubscription(arbSubscription);
 
-	console.log(JSON.stringify(createRequest.getJSON(), null, 2));
+	// console.log(JSON.stringify(createRequest.getJSON(), null, 2));
 		
 	var ctrl = new ApiControllers.ARBCreateSubscriptionController(createRequest.getJSON());
 
@@ -235,19 +252,23 @@ exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, custo
 				console.log('Subscription Id : ' + response.getSubscriptionId());
 				console.log('Message Code : ' + response.getMessages().getMessage()[0].getCode());
 				console.log('Message Text : ' + response.getMessages().getMessage()[0].getText());
+                resolve(response.getSubscriptionId());
 			}
 			else{
 				console.log('Result Code: ' + response.getMessages().getResultCode());
 				console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
 				console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
+                reject(response.getMessages().getMessage()[0].getText());
 			}
 		}
 		else{
 			var apiError = ctrl.getError();
 			console.log(apiError);
 			console.log('Null Response.');
+            reject('Null Response.');
 		}
 
-		callback(response);
 	});
+}
+);
 }
