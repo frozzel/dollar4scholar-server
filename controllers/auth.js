@@ -138,23 +138,20 @@ exports.webhook = async (req, res) => {
     const transactionId = req.body.payload.id;
     let customerId = 0;
 
+	
+	const userEmail = await getTransactionDetails( {transactionId: transactionId});
 
-    getTransactionDetails(transactionId, (response) => {
-        console.log('response', response);
-		console.log(response.transaction.customer.email)
-        // if(response.getTransaction() !== null){
-        //     customerId = response.getTransaction().getCustomer().getEmail();
-        // }
-        // console.log('custumer Email', response);
-        // res.json(response);
-    });
-	createCustomerProfileFromTransaction(transactionId, (response) => {
-		console.log('response', response);
-		// if(response.getTransaction() !== null){
-		const	customerProfileId = response.getCustomerProfileId();
-		console.log('Customer Profile ID', customerProfileId);
-		
-		res.json(response);
-	});
+	console.log('User Email', userEmail);
+	
+
+	const profileId = await createCustomerProfileFromTransaction({transactionId: transactionId})
+
+	console.log('👤 Customer Profile ID', profileId);
+
+	
+
+
+
+	res.json({email: userEmail, profileId: profileId});
     
 }
