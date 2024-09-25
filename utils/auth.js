@@ -55,28 +55,34 @@ exports.signInValidator = [
 ];
 
 // check if user is authenticated
-exports.isAuth = async(req, res, next) => {
+exports.isAuth = async (req, res, next) => {
     // console.log('🔑 Checking User Authentication 🔑');
 
-    const token =  req.headers?.authorization
+    const token = req.headers?.authorization
     if (!token) return sendError(res, 'Invalid token!', 401)
-  
+
     const jwtToken = token.split('Bearer ')[1]
-  
+
     if (!jwtToken) return sendError(res, 'Invalid token!', 401)
-    const decode = jwt.verify(jwtToken, process.env.JWT_SECRET)
-    
-    const {userId} = decode
-  
-    const user = await User.findById(userId)
-    if(!user) return sendError(res, 'No user found', 404);
-    
-    req.user = user;
-    
-    // sendError(res, 'User is authenticated!', 200).next();
-    next();
-    
+
+    try {
+        // verify if token is outdated
+        const decode = jwt.verify(jwtToken, process.env.JWT_SECRET);
+        const { userId } = decode;
+
+        const user = await User.findById(userId);
+        if (!user) return sendError(res, 'No user found', 404);
+
+        req.user = user;
+        next();
+
+    } catch (error) {
+        if (error.name === 'TokenExpiredError') {
+            return sendError(res, 'Token has expired!', 401);
+        }
+        return sendError(res, 'Invalid token!', 401);
     }
+};
 
 
 exports.getTransactionDetails = async ({transactionId}) => {
@@ -283,6 +289,57 @@ exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amoun
 		}
 
 	});
+}
+);
+}
+
+exports.cancelSubscriptionAuth = async ({subscriptionId}) => {
+    console.log('🔄 Cancelling Subscription 🔄');
+    console.log('Subscription Id:', subscriptionId);
+    return new Promise(async (resolve, reject) => {
+   
+    const merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
+    merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
+    merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
+
+    var cancelRequest = new ApiContracts.ARBCancelSubscriptionRequest();
+    cancelRequest.setMerchantAuthentication(merchantAuthenticationType);
+    cancelRequest.setSubscriptionId(subscriptionId);
+
+    // console.log(JSON.stringify(cancelRequest.getJSON(), null, 2));
+        
+    var ctrl = new ApiControllers.ARBCancelSubscriptionController(cancelRequest.getJSON());
+
+    ctrl.execute(function(){
+
+        var apiResponse = ctrl.getResponse();
+
+        if (apiResponse != null) var response = new ApiContracts.ARBCancelSubscriptionResponse(apiResponse);
+
+        // console.log(JSON.stringify(response, null, 2));
+
+        if(response != null){
+            if(response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK){
+                console.log('Subscription Cancelled');
+                console.log('Message Code : ' + response.getMessages().getMessage()[0].getCode());
+                console.log('Message Text : ' + response.getMessages().getMessage()[0].getText());
+                resolve({message: 'Subscription Cancelled'});
+            }
+            else{
+                console.log('Result Code: ' + response.getMessages().getResultCode());
+                console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
+                console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
+                reject({message: response.getMessages().getMessage()[0].getText()});
+            }
+        }
+        else{
+            var apiError = ctrl.getError();
+            console.log(apiError);
+            console.log('Null Response.');
+            reject('Null Response.');
+        }
+
+    });
 }
 );
 }
