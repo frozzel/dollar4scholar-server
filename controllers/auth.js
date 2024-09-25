@@ -1,4 +1,5 @@
 const User = require('../models/user')
+const Scholarship = require('../models/scholarship')
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
 const {getTransactionDetails, createCustomerProfileFromTransaction, createSubscriptionFromCustomerProfile} = require('../utils/auth.js');
@@ -180,8 +181,23 @@ exports.webhook = async (req, res) => {
 	await user.save();
 	console.log('👤 User: ', user);
 
+	
+
+	if(subscriptionId){
+		const scholarship = await Scholarship.findOne().sort({createdAt: -1});
+		if (!scholarship) return sendError(res, 404, 'Scholarship not found');
+		scholarship.studentsEntered.push(user._id);
+		scholarship.pot += 1.50;
+
+		await Scholarship.findByIdAndUpdate(scholarship._id, scholarship);
+		console.log('🎓 Scholarship: ', scholarship);
+
+	} else {
+		console.log('❌ Subscription not created ❌');
+	}
 
 
-	res.json({email: userEmail, customerProfileId: customerProfileId, customerPaymentProfileId: customerPaymentProfileId, customerAddressId: customerAddressId, subscriptionId });
+
+	res.json({email: userEmail, customerProfileId: customerProfileId, customerPaymentProfileId: customerPaymentProfileId, customerAddressId: customerAddressId, subscriptionId: subscriptionId,});
     
 }

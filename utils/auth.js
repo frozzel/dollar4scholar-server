@@ -189,21 +189,35 @@ exports.createCustomerProfileFromTransaction = async ({transactionId}) => {
 exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amount, customerPaymentProfileId, customerAddressId}) =>{
     console.log('🔄 Creating Subscription From Customer Profile 🔄');
     return new Promise(async (resolve, reject) => {
-        const today = new Date();
-        const startDate = new Date(today);
-        
-        // Set the month to the next month
-        startDate.setMonth(today.getMonth() + 1);
-        
-        // Function to format the date as YYYY-MM-DD
-        const formatDate = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero
-            const day = String(date.getDate()).padStart(2, '0'); // Add leading zero
-            return `${year}-${month}-${day}`;
-        };
-        
-        console.log('Start Date:', formatDate(startDate));
+    
+    const today = new Date();
+    const startDate = new Date(today);
+
+    // Set the month to the next month
+    startDate.setMonth(today.getMonth() + 1);
+
+    // Function to adjust date if it's fictional (like the 30th of February)
+    const adjustDate = (date) => {
+      const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+      if (date.getDate() > daysInMonth) {
+        date.setDate(daysInMonth);
+      }
+      return date;
+    };
+
+    // Adjust the start date if it's on a fictional date
+    adjustDate(startDate);
+
+    // Function to format the date as YYYY-MM-DD
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Add leading zero
+      const day = String(date.getDate()).padStart(2, '0'); // Add leading zero
+      return `${year}-${month}-${day}`;
+    };
+
+    console.log('Start Date:', formatDate(startDate));
+
 	var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
 	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
 	merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
