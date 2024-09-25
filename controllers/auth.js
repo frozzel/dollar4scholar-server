@@ -2,8 +2,9 @@ const User = require('../models/user')
 const Scholarship = require('../models/scholarship')
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
-const {getTransactionDetails, createCustomerProfileFromTransaction, createSubscriptionFromCustomerProfile} = require('../utils/auth.js');
+const {getTransactionDetails, createCustomerProfileFromTransaction, createSubscriptionFromCustomerProfile, cancelSubscriptionAuth} = require('../utils/auth.js');
 const { sendError } = require('../utils/helper.js');
+const { isValidObjectId } = require('mongoose');
 
 
 
@@ -200,4 +201,29 @@ exports.webhook = async (req, res) => {
 
 	res.json({email: userEmail, customerProfileId: customerProfileId, customerPaymentProfileId: customerPaymentProfileId, customerAddressId: customerAddressId, subscriptionId: subscriptionId,});
     
+}
+
+exports.cancelSubscription = async (req, res) => {
+	console.log('🔑 Cancelling Subscription 🔑');
+	try{
+		const {userId} = req.params;
+
+		if (!isValidObjectId(userId)) return sendError(res, 404, 'Invalid user!');
+
+		const user = await User.findById(userId);
+		if (!user) return sendError(res, 404, 'User not found!');
+
+		const subscriptionId = user.subscriptionId;
+		console.log('Subscription ID: ', subscriptionId);
+
+		const deletedSubscription = await cancelSubscriptionAuth({subscriptionId: subscriptionId});
+		if(!deletedSubscription) return res.status(404).send('No subscription found');
+		user.subscription = false;
+		user.subscriptionId = null;
+		await user.save();
+		res.json({message: 'Subscription cancelled successfully!'});
+} catch (error) {
+	console.log(error);
+	res.status(400).json({message: 'Error cancelling subscription', error});
+	}
 }
