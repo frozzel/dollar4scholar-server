@@ -2,7 +2,11 @@ const User = require('../models/user')
 const Scholarship = require('../models/scholarship')
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
-const {getTransactionDetails, createCustomerProfileFromTransaction, createSubscriptionFromCustomerProfile, cancelSubscriptionAuth} = require('../utils/auth.js');
+const {getTransactionDetails, 
+	createCustomerProfileFromTransaction, 
+	createSubscriptionFromCustomerProfile, 
+	cancelSubscriptionAuth, 
+	deleteCustomerProfileAuth} = require('../utils/auth.js');
 const { sendError } = require('../utils/helper.js');
 const { isValidObjectId } = require('mongoose');
 
@@ -137,7 +141,7 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 exports.webhook = async (req, res) => {
     console.log(req.body.payload.id);
 	console.log('🔑 Webhook Received 🔑');
-	// console.log(req.body);
+	console.log(req.body);
     const transactionId = req.body.payload.id;
 	const amount = req.body.payload.authAmount;
 
@@ -204,7 +208,7 @@ exports.webhook = async (req, res) => {
 }
 
 exports.cancelSubscription = async (req, res) => {
-	console.log('🔑 Cancelling Subscription 🔑');
+	console.log('❌ Cancelling Subscription ❌');
 	try{
 		const {userId} = req.params;
 
@@ -218,12 +222,20 @@ exports.cancelSubscription = async (req, res) => {
 
 		const deletedSubscription = await cancelSubscriptionAuth({subscriptionId: subscriptionId});
 		if(!deletedSubscription) return res.status(404).send('No subscription found');
+
 		user.subscription = false;
 		user.subscriptionId = null;
+		
+		const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
+		if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
+
+		user.stripeId = null;
+
 		await user.save();
-		res.json({message: 'Subscription cancelled successfully!'});
+
+		res.json({message: '💀 Subscription cancelled successfully! 💀'});
 } catch (error) {
 	console.log(error);
-	res.status(400).json({message: 'Error cancelling subscription', error});
+	res.status(400).json({message: '💀 Error cancelling subscription 💀', error});
 	}
 }

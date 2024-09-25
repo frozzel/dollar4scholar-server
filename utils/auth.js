@@ -294,7 +294,7 @@ exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amoun
 }
 
 exports.cancelSubscriptionAuth = async ({subscriptionId}) => {
-    console.log('🔄 Cancelling Subscription 🔄');
+    console.log('❌ Cancelling Subscription ❌');
     console.log('Subscription Id:', subscriptionId);
     return new Promise(async (resolve, reject) => {
    
@@ -341,5 +341,61 @@ exports.cancelSubscriptionAuth = async ({subscriptionId}) => {
 
     });
 }
+);
+}
+
+exports.deleteCustomerProfileAuth = async ({customerProfileId}) => {
+    return new Promise(async (resolve, reject) => {
+    console.log('🗑 Deleting Customer Profile 🗑');
+    console.log('Customer Profile Id:', customerProfileId);
+    var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
+    merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
+    merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
+
+    var deleteRequest = new ApiContracts.DeleteCustomerProfileRequest();
+	deleteRequest.setMerchantAuthentication(merchantAuthenticationType);
+	deleteRequest.setCustomerProfileId(customerProfileId);
+
+	//pretty print request
+	//console.log(JSON.stringify(createRequest.getJSON(), null, 2));
+		
+	var ctrl = new ApiControllers.DeleteCustomerProfileController(deleteRequest.getJSON());
+
+	ctrl.execute(function(){
+
+		var apiResponse = ctrl.getResponse();
+
+		if (apiResponse != null) var response = new ApiContracts.DeleteCustomerProfileResponse(apiResponse);
+
+		//pretty print response
+		//console.log(JSON.stringify(response, null, 2));
+
+		if(response != null) 
+		{
+			if(response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK)
+			{
+				console.log('Successfully deleted a customer profile with id: ' + customerProfileId);
+                resolve({message: 'Customer Profile Deleted'});
+			}
+			else
+			{
+				//console.log('Result Code: ' + response.getMessages().getResultCode());
+				console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
+				console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
+                reject({message: response.getMessages().getMessage()[0].getText()});
+			}
+		}
+		else
+		{
+			var apiError = ctrl.getError();
+			console.log(apiError);
+			console.log('Null response received');
+            reject({message: 'Null response received'});
+		}
+
+		
+	});
+}
+
 );
 }
