@@ -238,7 +238,7 @@ exports.cancelSubscription = async (req, res) => {
 		res.json({message: '💀 Subscription cancelled successfully! 💀'});
 } catch (error) {
 	console.log(error);
-	res.json({message: '💀 Error cancelling subscription 💀', error});
+	res.json({message: '💀 Error cancelling subscription 💀'});
 	}
 }
 
@@ -260,7 +260,7 @@ exports.cancelSubscriptionHook = async (req, res) => {
 	user.stripeId = null;
 
 	await user.save();
-	
+
 	console.log('👤 User: ', user);
 
 	res.json({status: 200, message: '💀 Subscription cancelled successfully! 💀'});
