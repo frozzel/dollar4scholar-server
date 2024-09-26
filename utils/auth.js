@@ -192,7 +192,7 @@ exports.createCustomerProfileFromTransaction = async ({transactionId}) => {
 );
 }   
 
-exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amount, customerPaymentProfileId, customerAddressId}) =>{
+exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amount, customerPaymentProfileId}) =>{
     console.log('🔄 Creating Subscription From Customer Profile 🔄');
     return new Promise(async (resolve, reject) => {
     
@@ -242,7 +242,7 @@ exports.createSubscriptionFromCustomerProfile = async ({customerProfileId, amoun
 	var customerProfileIdType = new ApiContracts.CustomerProfileIdType();
 	customerProfileIdType.setCustomerProfileId(customerProfileId);
 	customerProfileIdType.setCustomerPaymentProfileId(customerPaymentProfileId);
-	customerProfileIdType.setCustomerAddressId(customerAddressId);
+	// customerProfileIdType.setCustomerAddressId(customerAddressId);
 
 	var arbSubscription = new ApiContracts.ARBSubscriptionType();
 	arbSubscription.setName('Monthly Subscription $2.79 Dollar4Scholar');
@@ -346,7 +346,7 @@ exports.cancelSubscriptionAuth = async ({subscriptionId}) => {
 
 exports.deleteCustomerProfileAuth = async ({customerProfileId}) => {
     return new Promise(async (resolve, reject) => {
-    console.log('🗑 Deleting Customer Profile 🗑');
+    console.log('🗑  Deleting Customer Profile 🗑');
     console.log('Customer Profile Id:', customerProfileId);
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
     merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
