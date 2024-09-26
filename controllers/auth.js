@@ -226,10 +226,10 @@ exports.cancelSubscription = async (req, res) => {
 		user.subscription = false;
 		user.subscriptionId = null;
 		
-		// const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
-		// if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
+		const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
+		if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
 
-		// user.stripeId = null;
+		user.stripeId = null;
 
 		await user.save();
 
@@ -253,14 +253,14 @@ exports.cancelSubscriptionHook = async (req, res) => {
 	const user = await User.findOne({stripeId: customerProfileId});
 
 	const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: customerProfileId});
-	if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
+	if(!deleteCustomerProfile) return res.send('No customer profile found');
 
 	user.stripeId = null;
 
 	await user.save();
 	console.log('👤 User: ', user);
 
-	res.json({User: user, message: '💀 Subscription cancelled successfully! 💀'});
+	res.json({status: 200, message: '💀 Subscription cancelled successfully! 💀'});
 
 } catch (error) {
 	console.log(error);
