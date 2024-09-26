@@ -138,14 +138,11 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	});
 }
 
-exports.webhook = async (req, res) => {
+exports.webhookTransaction = async (req, res) => {
     console.log(req.body.payload.id);
-	console.log('🔑 Webhook Received 🔑');
-	console.log(req.body);
+	console.log('💰 Webhook Transaction Received 💰');
+	// console.log(req.body);
     const transactionId = req.body.payload.id;
-	const amount = req.body.payload.authAmount;
-
-	// console.log("amount: ", amount);
 	
 	const userEmail = await getTransactionDetails( {transactionId: transactionId});
 
@@ -157,36 +154,35 @@ exports.webhook = async (req, res) => {
 	console.log('👤 Customer Profile ID: ', profileInfo);
 
 	const customerProfileId = profileInfo.customerProfileId;
-	const customerPaymentProfileIdList = profileInfo.customerPaymentProfileIdList.numericString;
-	const customerShippingAddressIdList = profileInfo.customerShippingAddressIdList.numericString;
- 
-
-	// Get the last string in the array and convert it to a plain string
-	const customerPaymentProfileId = customerPaymentProfileIdList[customerPaymentProfileIdList.length - 1].toString();
-
-	// Get the last string in the shipping address array and convert it to a plain string
-	const customerAddressId = customerShippingAddressIdList[customerShippingAddressIdList.length - 1].toString();
-
-	console.log("Customer Payment Profile Id", customerPaymentProfileId); // "923836061"
-	console.log("customerProfileId: ", customerProfileId);
-	console.log("customerAddressId: ", customerAddressId);
 	
-
-	
-	const subscriptionId = await createSubscriptionFromCustomerProfile({customerProfileId, amount, customerPaymentProfileId, customerAddressId});
-
-	console.log('🔄  Subscription ID: ', subscriptionId );
-
 	const user = await User.findOne({email: userEmail});
 	if (!user) return sendError(res, 404, 'User not found');
 	user.stripeId = customerProfileId;
-	user.subscriptionId = subscriptionId;
-	user.subscription = true;
+
 
 	await user.save();
 	console.log('👤 User: ', user);
 
-	
+	res.json({email: userEmail, customerProfileId: customerProfileId,});
+    
+}
+
+exports.webhookPaymentProfile = async (req, res) => {
+	console.log('🌐 Webhook Payment Profile 🌐');
+	// console.log(req.body);
+	const customerProfileId = req.body.payload.customerProfileId;
+	const customerPaymentProfileId = req.body.payload.id;
+	const amount = 2.79;
+
+	console.log('Customer Profile ID: ', customerProfileId);
+	console.log('Customer Payment Profile ID: ', customerPaymentProfileId);
+
+	const user = await User.findOne({stripeId: customerProfileId});
+	if (!user) return sendError(res, 404, 'User not found');
+
+	const subscriptionId = await createSubscriptionFromCustomerProfile({customerProfileId, amount, customerPaymentProfileId});
+
+	console.log('🔄  Subscription ID: ', subscriptionId );
 
 	if(subscriptionId){
 		const scholarship = await Scholarship.findOne().sort({createdAt: -1});
@@ -196,15 +192,19 @@ exports.webhook = async (req, res) => {
 
 		await Scholarship.findByIdAndUpdate(scholarship._id, scholarship);
 		console.log('🎓 Scholarship: ', scholarship);
-
 	} else {
-		console.log('❌ Subscription not created ❌');
-	}
+			console.log('❌ Subscription not created ❌');
+			return sendError(res, 404, '❌ Subscription not created ❌');
+		}
 
+	user.subscriptionId = subscriptionId;
+	user.subscription = true;
 
+	await user.save();
 
-	res.json({email: userEmail, customerProfileId: customerProfileId, customerPaymentProfileId: customerPaymentProfileId, customerAddressId: customerAddressId, subscriptionId: subscriptionId,});
-    
+	console.log('👤 User: ', user);
+
+	res.json({customerProfileId, customerPaymentProfileId,});
 }
 
 exports.cancelSubscription = async (req, res) => {
@@ -221,21 +221,49 @@ exports.cancelSubscription = async (req, res) => {
 		console.log('Subscription ID: ', subscriptionId);
 
 		const deletedSubscription = await cancelSubscriptionAuth({subscriptionId: subscriptionId});
-		if(!deletedSubscription) return res.status(404).send('No subscription found');
+		if(!deletedSubscription) return res.send('No subscription found');
 
 		user.subscription = false;
 		user.subscriptionId = null;
 		
-		const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
-		if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
+		// const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
+		// if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
 
-		user.stripeId = null;
+		// user.stripeId = null;
 
 		await user.save();
 
 		res.json({message: '💀 Subscription cancelled successfully! 💀'});
 } catch (error) {
 	console.log(error);
-	res.status(400).json({message: '💀 Error cancelling subscription 💀', error});
+	res.json({message: '💀 Error cancelling subscription 💀', error});
+	}
+}
+
+exports.cancelSubscriptionHook = async (req, res) => {
+	console.log('❌ Webhook Subscription Cancelled ❌');
+	console.log(req.body);
+	try{
+	const subscriptionId = req.body.payload.id;
+	const customerProfileId = req.body.payload.profile.customerProfileId;
+
+	console.log('Subscription ID: ', subscriptionId);
+	console.log('Customer Profile ID: ', customerProfileId);
+
+	const user = await User.findOne({stripeId: customerProfileId});
+
+	const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: customerProfileId});
+	if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
+
+	user.stripeId = null;
+
+	await user.save();
+	console.log('👤 User: ', user);
+
+	res.json({User: user, message: '💀 Subscription cancelled successfully! 💀'});
+
+} catch (error) {
+	console.log(error);
+	res.json({message: '💀 Error cancelling subscription 💀', error});
 	}
 }
