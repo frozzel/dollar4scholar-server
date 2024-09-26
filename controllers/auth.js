@@ -225,6 +225,8 @@ exports.cancelSubscription = async (req, res) => {
 
 		user.subscription = false;
 		user.subscriptionId = null;
+
+		await user.save();
 		
 		const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
 		if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
@@ -242,7 +244,7 @@ exports.cancelSubscription = async (req, res) => {
 
 exports.cancelSubscriptionHook = async (req, res) => {
 	console.log('❌ Webhook Subscription Cancelled ❌');
-	console.log(req.body);
+	// console.log(req.body);
 	try{
 	const subscriptionId = req.body.payload.id;
 	const customerProfileId = req.body.payload.profile.customerProfileId;
@@ -258,12 +260,13 @@ exports.cancelSubscriptionHook = async (req, res) => {
 	user.stripeId = null;
 
 	await user.save();
+	
 	console.log('👤 User: ', user);
 
 	res.json({status: 200, message: '💀 Subscription cancelled successfully! 💀'});
 
 } catch (error) {
 	console.log(error);
-	res.json({message: '💀 Error cancelling subscription 💀', error});
+	res.json({status: 401, message: '💀 Error cancelling subscription 💀', error});
 	}
 }
