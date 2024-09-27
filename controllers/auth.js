@@ -16,22 +16,12 @@ const { isValidObjectId } = require('mongoose');
 
 exports.getAnAcceptPaymentPage = (req, res) => {
     console.log('🔑 Getting Hosted Payment Page Token 🔑');
-	// console.log(req.body);
-	// console.log("User userId Server", req.body.params.userId);
-	// console.log("User email Server", req.body.params.email);
-	// console.log("User refId Server", req.body.params.refId);
-	// console.log("User amount Server", req.body.params.amount);
-	// console.log("User stripeId Server", req.body.params.stripeId);
+
     var userId = req.body.userId;
 	var email = req.body.email;
 
     var refId = req.body.refId;
 	var amount = req.body.amount;
-	// var customerProfileId = req.body.stripeId;
-	// console.log('User ID', userId);
-	// console.log('User Email', email);
-	// console.log('User Ref ID', refId);
-	// console.log('User Amount', amount);
 
    
     var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
@@ -48,17 +38,12 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	const orderType = new ApiContracts.OrderType();
     // orderType.setInvoiceNumber(userId);
     orderType.setDescription("Dollar4Scholar $" + amount + " Monthly Subscription " + "Email: " + email + " User ID: " + userId);
-
-	// Create a CustomerProfilePaymentType object to hold the customer profile ID
-	// const profile = new ApiContracts.CustomerProfilePaymentType();
-    // profile.setCustomerProfileId(customerProfileId);
 	
 	var transactionRequestType = new ApiContracts.TransactionRequestType();
 	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
 	transactionRequestType.setAmount(amount);
     transactionRequestType.setCustomer(customerData);
 	transactionRequestType.setOrder(orderType);
-	// transactionRequestType.setProfile(profile); // Set the customer profile here
 	
 	var setting1 = new ApiContracts.SettingType();
 	setting1.setSettingName('hostedPaymentButtonOptions');
@@ -78,17 +63,11 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 	paymentOptionsSetting.setSettingName('hostedPaymentPaymentOptions');
 	paymentOptionsSetting.setSettingValue('{ "cardCodeRequired": true, "showCreditCard": true, "showBankAccount": false }'); // This setting may change depending on your requirements
 
-	// Add setting to ensure save payment option is always checked
-	// var savePaymentOptionsSetting = new ApiContracts.SettingType();
-	// savePaymentOptionsSetting.setSettingName('hostedPaymentCustomerOptions');
-	// savePaymentOptionsSetting.setSettingValue('{ "addPaymentProfile": true, "profileSavePolicy": "addUpdate" }');
-
 	var settingList = [];
 	settingList.push(setting1);
 	settingList.push(setting2);
     settingList.push(returnUrlSetting); // Add the return URL setting to the list
 	settingList.push(paymentOptionsSetting); // Include the payment options setting
-	// settingList.push(savePaymentOptionsSetting); // Include the save payment options setting
 
 	var alist = new ApiContracts.ArrayOfSetting();
 	alist.setSetting(settingList);
@@ -141,27 +120,31 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 exports.webhookTransaction = async (req, res) => {
     console.log(req.body.payload.id);
 	console.log('💰 Webhook Transaction Received 💰');
-	// console.log(req.body);
-    const transactionId = req.body.payload.id;
+	console.log(req.body);
+	if (req.body.payload.refId === 'Donor') {
+		console.log('👤 Donor Transaction 🌟');
+		return res.json({message: 'Donor Transaction'});
+	}
+    // const transactionId = req.body.payload.id;
 	
-	const userEmail = await getTransactionDetails( {transactionId: transactionId});
+	// const userEmail = await getTransactionDetails( {transactionId: transactionId});
 
-	console.log('User Email: ', userEmail);
+	// console.log('User Email: ', userEmail);
 	
 
-	const profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})
+	// const profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})
 
-	console.log('👤 Customer Profile ID: ', profileInfo);
+	// console.log('👤 Customer Profile ID: ', profileInfo);
 
-	const customerProfileId = profileInfo.customerProfileId;
+	// const customerProfileId = profileInfo.customerProfileId;
 	
-	const user = await User.findOne({email: userEmail});
-	if (!user) return sendError(res, 404, 'User not found');
-	user.stripeId = customerProfileId;
+	// const user = await User.findOne({email: userEmail});
+	// if (!user) return sendError(res, 404, 'User not found');
+	// user.stripeId = customerProfileId;
 
 
-	await user.save();
-	console.log('👤 User: ', user);
+	// await user.save();
+	// console.log('👤 User: ', user);
 
 	res.json({email: userEmail, customerProfileId: customerProfileId,});
     
@@ -269,4 +252,123 @@ exports.cancelSubscriptionHook = async (req, res) => {
 	console.log(error);
 	res.json({status: 401, message: '💀 Error cancelling subscription 💀', error});
 	}
+}
+exports.getAnAcceptPaymentPageDonor = (req, res) => {
+    console.log('🤕 Getting Hosted Payment Page Token Donor 🤕');
+	var userId = req.body.userId;
+	var email = req.body.email;
+
+    var refId = req.body.refId;
+	var amount = req.body.amount;
+	// var customerProfileId = req.body.stripeId;
+	console.log('User ID', userId);
+	console.log('User Email', email);
+	console.log('User Ref ID', refId);
+	console.log('User Amount', amount);
+
+	function calculateTotalAmount(transactionAmount) {
+		// Calculate the Stripe fee
+	const stripeFee = (transactionAmount + 0.3) / (1 - 0.029) - transactionAmount;
+	// Calculate the total amount charged
+	const totalAmountCharged = transactionAmount + stripeFee;  
+	return Number(totalAmountCharged.toFixed(2)); // Round to 2 decimal places
+  }
+ 	const totalAmountCharged = calculateTotalAmount(amount);
+
+	console.log('Total Amount Charged: ', totalAmountCharged);
+   
+    var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
+	merchantAuthenticationType.setName(process.env.AUTHORIZE_NET_API_LOGIN_ID);
+	merchantAuthenticationType.setTransactionKey(process.env.AUTHORIZE_NET_TRANSACTION_KEY);
+
+    // Create a CustomerDataType object to hold the customer ID
+    var customerData = new ApiContracts.CustomerDataType();
+	customerData.setEmail(email);
+
+
+	// Create an OrderType object to hold the order information
+	const orderType = new ApiContracts.OrderType();
+    orderType.setDescription("Credit Card Transaction Fees are added into your Total $"+ totalAmountCharged + " Email: " + email + " User ID: " + userId);
+	
+
+	// Create a CustomerProfilePaymentType object to hold the customer profile ID
+	// const profile = new ApiContracts.CustomerProfilePaymentType();
+    // profile.setCustomerProfileId(customerProfileId);
+	
+	var transactionRequestType = new ApiContracts.TransactionRequestType();
+	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
+	transactionRequestType.setAmount(totalAmountCharged);
+    transactionRequestType.setCustomer(customerData);
+	transactionRequestType.setOrder(orderType);
+	
+	var setting1 = new ApiContracts.SettingType();
+	setting1.setSettingName('hostedPaymentButtonOptions');
+	setting1.setSettingValue('{\"text\": \"Add Funds\"}');
+
+	var setting2 = new ApiContracts.SettingType();
+	setting2.setSettingName('hostedPaymentOrderOptions');
+	setting2.setSettingValue('{\"show\": true}');
+
+        // Adding the return URL setting
+    var returnUrlSetting = new ApiContracts.SettingType();
+    returnUrlSetting.setSettingName('hostedPaymentReturnOptions');
+    returnUrlSetting.setSettingValue(`{"url": "${process.env.PAYMENT_REDIRECT}", "urlText": "Home", "cancelUrl": "${process.env.PAYMENT_CANCEL}", "cancelUrlText": "Cancel"} `);
+
+	// Add Payment Options to exclude eChecks
+	var paymentOptionsSetting = new ApiContracts.SettingType();
+	paymentOptionsSetting.setSettingName('hostedPaymentPaymentOptions');
+	paymentOptionsSetting.setSettingValue('{ "cardCodeRequired": true, "showCreditCard": true, "showBankAccount": false }'); // This setting may change depending on your requirements
+
+	var settingList = [];
+	settingList.push(setting1);
+	settingList.push(setting2);
+    settingList.push(returnUrlSetting); // Add the return URL setting to the list
+	settingList.push(paymentOptionsSetting); // Include the payment options setting
+
+	var alist = new ApiContracts.ArrayOfSetting();
+	alist.setSetting(settingList);
+
+	var getRequest = new ApiContracts.GetHostedPaymentPageRequest();
+	getRequest.setMerchantAuthentication(merchantAuthenticationType);
+	getRequest.setTransactionRequest(transactionRequestType);
+	getRequest.setHostedPaymentSettings(alist);
+    getRequest.setRefId(refId);
+
+	// console.log(JSON.stringify(getRequest.getJSON(), null, 2));
+		
+	var ctrl = new ApiControllers.GetHostedPaymentPageController(getRequest.getJSON());
+
+	ctrl.execute(function(){
+
+		var apiResponse = ctrl.getResponse();
+
+		var response = new ApiContracts.GetHostedPaymentPageResponse(apiResponse);
+
+		//pretty print response
+		// console.log(JSON.stringify(response, null, 2));
+
+		if(response != null) 
+		{
+			if(response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK)
+			{
+				console.log('🤑🤑 Hosted payment page Donar token Retrieved 🤑🤑');
+				// console.log(response.getToken());
+                res.json(response.getToken());
+			}
+			else
+			{
+				//console.log('Result Code: ' + response.getMessages().getResultCode());
+				console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
+				console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
+                res.json(response);
+			}
+		}
+		else
+		{
+			console.log('Null response received');
+            res.json(response);
+		}
+
+		// res.json(response.token);
+	});
 }
