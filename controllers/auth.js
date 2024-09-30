@@ -6,7 +6,8 @@ const {getTransactionDetails,
 	createCustomerProfileFromTransaction, 
 	createSubscriptionFromCustomerProfile, 
 	cancelSubscriptionAuth, 
-	deleteCustomerProfileAuth} = require('../utils/auth.js');
+	deleteCustomerProfileAuth,
+checkDeletedSubscription} = require('../utils/auth.js');
 const { sendError } = require('../utils/helper.js');
 const { isValidObjectId } = require('mongoose');
 
@@ -130,7 +131,7 @@ exports.webhookTransaction = async (req, res) => {
 		const flatFee = 0.30;
 		
 		const originalAmount2= (totalAmountCharged - flatFee) / (1 + stripePercentage);
-		return Number(originalAmount2.toFixed(1)); // Round to 2 decimal places
+		return Number(originalAmount2.toFixed(0)); // Round to 2 decimal places
 	  }
 	  
 	  const originalAmount = calculateOriginalTransactionAmount(amount);
@@ -165,18 +166,7 @@ exports.webhookTransaction = async (req, res) => {
 	console.log('User Email: ', userEmail);
 	
 
-	var profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})
-	if (profileInfo === '❌ Customer Profile not created ❌') {
-		console.log('❌ Customer Profile not created ❌ 1');
-		profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId});
-
-		if (profileInfo === '❌ Customer Profile not created ❌') {
-			console.log('❌ Customer Profile not created ❌ 2');
-			profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId});
-			return res.json('❌ Customer Profile not created ❌ Done');
-		}
-	}
-		
+	const profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})	
 
 	console.log('👤 Customer Profile ID: ', profileInfo);
 
@@ -248,15 +238,20 @@ exports.cancelSubscription = async (req, res) => {
 		console.log('Subscription ID: ', subscriptionId);
 
 		const deletedSubscription = await cancelSubscriptionAuth({subscriptionId: subscriptionId});
-		if(!deletedSubscription) return res.send('No subscription found');
+
+		console.log(' Deleted Subscription: ', deletedSubscription);
 
 		user.subscription = false;
 		user.subscriptionId = null;
 
 		await user.save();
+
+		const verifyDeleted = await checkDeletedSubscription({subscriptionId: subscriptionId});
+
+		console.log(' Deleted Subscription Status ', verifyDeleted);
 		
 		const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: user.stripeId});
-		if(!deleteCustomerProfile) return res.status(404).send('No customer profile found');
+		if(deleteCustomerProfile === 'Error') return res.json({message: '💀 Subscription cancelled successfully! 💀 Profile not Deleted'});
 
 		user.stripeId = null;
 
@@ -282,8 +277,7 @@ exports.cancelSubscriptionHook = async (req, res) => {
 	const user = await User.findOne({stripeId: customerProfileId});
 
 	const deleteCustomerProfile = await deleteCustomerProfileAuth({customerProfileId: customerProfileId});
-	if(!deleteCustomerProfile) return res.send('No customer profile found');
-
+	if(deleteCustomerProfile === 'Error') return res.json({message: '💀 Subscription cancelled successfully! 💀 Profile not Deleted'});
 	user.stripeId = null;
 
 	await user.save();
@@ -297,6 +291,7 @@ exports.cancelSubscriptionHook = async (req, res) => {
 	res.json({status: 401, message: '💀 Error cancelling subscription 💀', error});
 	}
 }
+
 exports.getAnAcceptPaymentPageDonor = (req, res) => {
     console.log('🤕 Getting Hosted Payment Page Token Donor 🤕');
 	var userId = req.body.userId;
