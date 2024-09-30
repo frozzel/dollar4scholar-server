@@ -173,7 +173,7 @@ exports.createCustomerProfileFromTransaction = async ({transactionId}) => {
 				//console.log('Result Code: ' + response.getMessages().getResultCode());
 				console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());
 				console.log('Error message: ' + response.getMessages().getMessage()[0].getText());
-                reject(response.getMessages().getMessage()[0].getText());
+                resolve('❌ Customer Profile not created ❌');
 			}
 		}
 		else
