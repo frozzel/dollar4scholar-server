@@ -118,36 +118,80 @@ exports.getAnAcceptPaymentPage = (req, res) => {
 }
 
 exports.webhookTransaction = async (req, res) => {
-    console.log(req.body.payload.id);
+    // console.log(req.body.payload.id);
 	console.log('💰 Webhook Transaction Received 💰');
-	console.log(req.body);
-	if (req.body.payload.refId === 'Donor') {
+	// console.log(req.body);
+
+	const transactionId = req.body.payload.id;
+	const amount = req.body.payload.authAmount;
+
+	function calculateOriginalTransactionAmount(totalAmountCharged) {
+		const stripePercentage = 0.029;
+		const flatFee = 0.30;
+		
+		const originalAmount2= (totalAmountCharged - flatFee) / (1 + stripePercentage);
+		return Number(originalAmount2.toFixed(1)); // Round to 2 decimal places
+	  }
+	  
+	  const originalAmount = calculateOriginalTransactionAmount(amount);
+
+
+	if (req.body.payload.merchantReferenceId === 'donor') {
 		console.log('👤 Donor Transaction 🌟');
-		return res.json({message: 'Donor Transaction'});
+
+		const userEmail = await getTransactionDetails( {transactionId: transactionId});
+
+		console.log('User Email: ', userEmail);
+
+		const user = await User.findOne({email: userEmail});
+		if (!user) return sendError(res, 404, 'User not found');
+
+		const newWallet = user.wallet + originalAmount;
+
+		user.wallet = newWallet;
+
+		await user.save();
+
+		console.log('👤 User: ', user.name, '💵 Wallet: ', user.wallet);
+
+		
+		return res.json({message: '👤 Donor Transaction 🌟', wallet: `💵 ${user.wallet}`});
 	}
-    // const transactionId = req.body.payload.id;
+ 
+	console.log('👤 Student Transaction 🌟');
+
+	const userEmail = await getTransactionDetails( {transactionId: transactionId});
+
+	console.log('User Email: ', userEmail);
 	
-	// const userEmail = await getTransactionDetails( {transactionId: transactionId});
 
-	// console.log('User Email: ', userEmail);
+	var profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})
+	if (profileInfo === '❌ Customer Profile not created ❌') {
+		console.log('❌ Customer Profile not created ❌ 1');
+		profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId});
+
+		if (profileInfo === '❌ Customer Profile not created ❌') {
+			console.log('❌ Customer Profile not created ❌ 2');
+			profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId});
+			return res.json('❌ Customer Profile not created ❌ Done');
+		}
+	}
+		
+
+	console.log('👤 Customer Profile ID: ', profileInfo);
+
+	const customerProfileId = profileInfo.customerProfileId;
 	
-
-	// const profileInfo = await createCustomerProfileFromTransaction({transactionId: transactionId})
-
-	// console.log('👤 Customer Profile ID: ', profileInfo);
-
-	// const customerProfileId = profileInfo.customerProfileId;
-	
-	// const user = await User.findOne({email: userEmail});
-	// if (!user) return sendError(res, 404, 'User not found');
-	// user.stripeId = customerProfileId;
+	const user = await User.findOne({email: userEmail});
+	if (!user) return sendError(res, 404, 'User not found');
+	user.stripeId = customerProfileId;
 
 
-	// await user.save();
-	// console.log('👤 User: ', user);
+	await user.save();
+	console.log('👤 User: ', user);
 
 	res.json({email: userEmail, customerProfileId: customerProfileId,});
-    
+    // res.json({message: '❌ 👤 Donor Transaction  Fail ❌'});
 }
 
 exports.webhookPaymentProfile = async (req, res) => {
@@ -260,13 +304,8 @@ exports.getAnAcceptPaymentPageDonor = (req, res) => {
 
     var refId = req.body.refId;
 	var amount = req.body.amount;
-	// var customerProfileId = req.body.stripeId;
-	console.log('User ID', userId);
-	console.log('User Email', email);
-	console.log('User Ref ID', refId);
-	console.log('User Amount', amount);
 
-	function calculateTotalAmount(transactionAmount) {
+	function  calculateTotalAmount(transactionAmount) {
 		// Calculate the Stripe fee
 	const stripeFee = (transactionAmount + 0.3) / (1 - 0.029) - transactionAmount;
 	// Calculate the total amount charged
@@ -352,6 +391,7 @@ exports.getAnAcceptPaymentPageDonor = (req, res) => {
 			if(response.getMessages().getResultCode() == ApiContracts.MessageTypeEnum.OK)
 			{
 				console.log('🤑🤑 Hosted payment page Donar token Retrieved 🤑🤑');
+				
 				// console.log(response.getToken());
                 res.json(response.getToken());
 			}
