@@ -6,7 +6,7 @@ const {getAnAcceptPaymentPage, webhookTransaction, cancelSubscription, webhookPa
 // Route to create payment page
 
 router.post('/paymentPage/:userId', isAuth, getAnAcceptPaymentPage);
-router.post('/paymentPageDonor/:userId', getAnAcceptPaymentPageDonor);
+router.post('/paymentPageDonor/:userId', isAuth, getAnAcceptPaymentPageDonor);
 router.post('/webhook/transaction',  webhookTransaction);
 router.post('/webhook/payment-profile', webhookPaymentProfile);
 router.post('/webhook/subscription-canceled', cancelSubscriptionHook);
