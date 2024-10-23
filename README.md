@@ -1,5 +1,5 @@
 <div>
-<a href=""><img src="https://github.com/frozzel/dollar4scholar-client/blob/b2c65efe130e00294ee949a01f513a44f26b076f/public/Dollar4Scholar-Logo.png" align="center" height="" width="40%" ></a></div>
+<a href=""><img src="https://github.com/frozzel/dollar4scholar-client/blob/b2c65efe130e00294ee949a01f513a44f26b076f/public/Dollar4Scholar-Logo.png" align="center" height="" width="100%" ></a></div>
 
 
 ---
