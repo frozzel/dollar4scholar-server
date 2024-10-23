@@ -1,7 +1,13 @@
 <div>
-<a href=""><img src="https://github.com/frozzel/dollar4scholar-client/blob/b2c65efe130e00294ee949a01f513a44f26b076f/public/Dollar4Scholar-Logo.png" align="center" height="" width="20%" ></a></div>
+<a href=""><img src="https://github.com/frozzel/dollar4scholar-client/blob/b2c65efe130e00294ee949a01f513a44f26b076f/public/Dollar4Scholar-Logo.png" align="center" height="" width="20%" ></a><sub>  Cyrus Group Inv |  ⚙️ Auto Updates  |  ⭐⭐⭐⭐⭐ (63) </sub>
+
+[![Github license](https://img.shields.io/badge/Install-0275d8.svg)](https://github.com/frozzel/uni-server)   [![Github license](https://img.shields.io/badge/Information-0275d8.svg)](https://cyrusgroupinnovations.com) 
 
 
+
+</div>
+
+---
 
    # Dollar 4 Scholar Server
    [![CLIENT](https://img.shields.io/badge/React-61DAFB.svg?style=for-the-badge&logo=React&logoColor=black)](https://github.com/frozzel/dollar4scholar-client) [![DIGITALOCEAN](https://img.shields.io/badge/DigitalOcean-0080FF.svg?style=for-the-badge&logo=DigitalOcean&logoColor=white)](https://dollar4scholar.com)
